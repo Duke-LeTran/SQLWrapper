@@ -2,7 +2,8 @@
 
 This is a very robust python-SQL database wrapper designed to centralize your
 database connections into a single object. It is desiged to abstract the
-complicated formatting of DSN connection strings.
+complicated formatting of DSN connection strings. The Oracle implementation is
+thoroughly tested, but the Microsoft SQL Server still needs further development.
 
 # Setup
 ```bash
@@ -49,7 +50,7 @@ DATABASE = NameOfDatabase
 ```
 
 
-# Sample Use
+# Sample use
 
 ```python
 import pandas as pd

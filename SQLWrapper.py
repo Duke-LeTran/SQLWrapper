@@ -10,9 +10,8 @@ SETUP:
     1. Place and edit config files in ~/.mypylib/ 
     2. Run ```chmod 600 ~/.mypylib/db_config.ini``` to protect the files
 
-Duke LeTran <daletran@ucdavis.edu>
+Duke LeTran <duke.letran@gmail.com; daletran@ucdavis.edu>
 Research Infrastructure, IT Health Informatics, UC Davis Health
-Copyright 2021, UC Regents
 """
 
 # standard library
