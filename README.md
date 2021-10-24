@@ -13,7 +13,7 @@ git clone git@github.com:Duke-LeTran/SQLWrapper.git ~/path_to_pythonpath/SQLWrap
 Add this line below to your `~/.bashrc` file.
 
 ```bash
-export PYTHONPATH="~/path_to_pythonpath/SQLWrapper"
+export PYTHONPATH="~/path_to_pythonpath/SQLWrapper:$PYTHONPATH"
 ```
 
 Set up your config files and ensure that the files are permissions protected.
@@ -102,10 +102,10 @@ Example of `~/.bashrc`
 # Oracle Environmental Variables
 #----------------------------------
 export ORACLE_BASE="/opt/oracle"
-export ORACLE_HOME="/opt/oracle/instantclient_19_6"
-export LD_LIBRARY_PATH="$ORACLE_HOME/lib:$LD_LIBRARY_PATH"
+export ORACLE_HOME="/opt/oracle/instantclient_19_6" # this may vary for you
+export LD_LIBRARY_PATH="$ORACLE_HOME/lib:$LD_LIBRARY_PATH" # this may vary for you
 export TNS_ADMIN="$ORACLE_HOME/network/admin"
-export PATH="$ORACLE_HOME/bin:/opt/bin:$PATH"
+export PATH="$ORACLE_HOME/bin:$PATH"
 
 ```
 
