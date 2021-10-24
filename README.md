@@ -7,7 +7,7 @@ thoroughly tested, but the Microsoft SQL Server still needs further development.
 
 # Setup
 ```bash
-git clone git@gitlab.ri.ucdavis.edu:ithi-ri/utils/SQLWrapper.git ~/path_to_pythonpath/SQLWrapper
+git clone git@github.com:Duke-LeTran/SQLWrapper.git ~/path_to_pythonpath/SQLWrapper
 ```
 
 Add this `~/.bashrc` file.
