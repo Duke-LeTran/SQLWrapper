@@ -5,17 +5,22 @@ database connections into a single object. It is desiged to abstract the
 complicated formatting of DSN connection strings.
 
 # Setup
-Set up you config files and ensure it is permissions protected.
 ```bash
-cp -r config ~/.mypyblib
-# edit your config files, i.e., db_config.ini
-chmod 600 ~/.mypylib/* 
+git clone git@gitlab.ri.ucdavis.edu:ithi-ri/utils/SQLWrapper.git ~/path_to_pythonpath/SQLWrapper
 ```
 
 Add this `~/.bashrc` file.
 
 ```bash
-export PYTHONPATH="~/path_to_module/SQLWrapper"
+export PYTHONPATH="~/path_to_pythonpath/SQLWrapper"
+```
+
+Set up your config files and ensure it is permissions protected.
+
+```bash
+cp -r config ~/.mypylib
+# edit your config files, i.e., db_config.ini
+chmod 600 ~/.mypylib/* 
 ```
 
 Now you should be able to import SQLWrapper from anywhere.
