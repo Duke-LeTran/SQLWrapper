@@ -10,13 +10,13 @@ thoroughly tested, but the Microsoft SQL Server still needs further development.
 git clone git@github.com:Duke-LeTran/SQLWrapper.git ~/path_to_pythonpath/SQLWrapper
 ```
 
-Add this `~/.bashrc` file.
+Add this line below to your `~/.bashrc` file.
 
 ```bash
 export PYTHONPATH="~/path_to_pythonpath/SQLWrapper"
 ```
 
-Set up your config files and ensure it is permissions protected.
+Set up your config files and ensure that the files are permissions protected.
 
 ```bash
 cp -r config ~/.mypylib
