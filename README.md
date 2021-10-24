@@ -1,12 +1,12 @@
 # SQLWrapper
 
-Assuming you have all your python environment setup correctly with the correct 
-dependencies and/or modules, this tool should work very effectively with Oracle 
-and SQLServer. 
+This is a very robust python-SQL database wrapper designed to centralize your
+database connections into a single object. It is desiged to abstract the
+complicated formatting of DSN connection strings.
 
 # Setup
 Set up you config files and ensure it is permissions protected.
-```
+```bash
 cp -r config ~/.mypyblib
 # edit your config files, i.e., db_config.ini
 chmod 600 ~/.mypylib/* 
@@ -24,7 +24,7 @@ Now you should be able to import SQLWrapper from anywhere.
 This is your config file. Entries will need to be edited to reflect your 
 personal databases. See a few example entries below.
 
-```{db_config.ini}
+```ini
 # I. Oracle
 [OracleDb] 
 hello = dletran
@@ -45,7 +45,7 @@ DATABASE = NameOfDatabase
 
 # Sample Use
 
-```{python}
+```python
 import pandas as pd
 import numpy as np
 
@@ -64,6 +64,8 @@ df_upload.to_sql(
     index=False,
     dtype=oracle_dtypes # dictionary of SQLAlchemy DataTypes
 )
+# if you need a cx_Oracle connection
+conn = db.engine.raw_connection()
 
 ```
 
