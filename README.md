@@ -25,13 +25,14 @@ chmod 600 ~/.mypylib/*
 
 Now you should be able to import SQLWrapper from anywhere.
         
-# Sample setup of config file: $HOME/.mypylib/db_config.ini
+# Sample setup of config file 
 This is your config file. Entries will need to be edited to reflect your 
-personal databases. See a few example entries below.
+personal databases. See a few example entries below. My prefered location to 
+place this file is: `$HOME/.mypylib/db_config.ini`
 
 ```ini
 # I. Oracle
-[OracleDb] 
+[ORACLE_DB_ENTRY] 
 hello = dletran
 world = fakepw123
 db_name = NameOfDatabase
@@ -39,8 +40,8 @@ hostname = HostName
 service_name = ServiceName
 port = 1521
 
-# II. SQL SERVER
-[SQLServerDb]
+# II. SQL SERVER (windows auth)
+[SQLServerDbAlias]
 hello = dletran
 DRIVER = {ODBC Driver 17 for SQL Server}
 SERVER = NameOfServer
@@ -53,14 +54,21 @@ DATABASE = NameOfDatabase
 ```python
 import pandas as pd
 import numpy as np
-
 import SQLWrapper
 
 # Velos is the name of the server in my file
-db =  SQLWrapper.Oracle('DB_NAME')
+db =  SQLWrapper.Oracle('ORACLE_DB_ENTRY')
 # note that the limit parameter is database agnostic
 df_study = db.select('*', 'TBL_NAME', limit=10) # returns a pandas df
 db.read_sql("SELECT COUNT('*') FROM SCHEMA.TBL_NAME")
+
+oracle_dtypes = {
+            'col_integer' : NUMBER(38,0),
+            'col_string' : VARCHAR2(50),
+            'col_date' : DATE()
+}
+
+#
 df_upload.to_sql(
     "table_name", 
     db.engine, 
