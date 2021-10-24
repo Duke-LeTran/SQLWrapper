@@ -98,5 +98,8 @@ export PATH="$ORACLE_HOME/bin:/opt/bin:$PATH"
 
 ```
 
-You must also use sqlalchemy datatypes when using `to_sql` to push to an Oracle 
-database. See more here: https://docs.sqlalchemy.org/en/14/dialects/oracle.html#oracle-data-types
+You must also use sqlalchemy datatypes when using `pd.df.to_sql()` to push to an Oracle 
+database. 
+See more here: 
+* https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.to_sql.html
+* https://docs.sqlalchemy.org/en/14/dialects/oracle.html#oracle-data-types
