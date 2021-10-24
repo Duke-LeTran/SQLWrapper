@@ -10,8 +10,7 @@ Refer to these confluence files to ensure all your dependecies are installed:
 * [How-To](https://confluence.ucdmc.ucdavis.edu/confluence/x/4wxQB): connect to an Oracle Database using python3.6+ and cx_Oracle
 
 
-# I. Setup
-## SET-UP Overview:
+# Setup
 Set up you config files and ensure it is permissions protected.
 ```
 cp -r config ~/.mypyblib
@@ -27,7 +26,7 @@ export PYTHONPATH="~/path_to_module/SQLWrapper"
 
 Now you should be able to import SQLWrapper from anywhere.
         
-## A. .mypylib/db_config.ini
+# Edit your config file: $HOME/.mypylib/db_config.ini
 This is your config file. Entries will need to be edited to reflect your 
 personal databases. See a few example entries below.
 
@@ -50,7 +49,7 @@ DATABASE = NameOfDatabase
 ```
 
 
-# II. Sample Use
+# Sample Use
 
 ```{python}
 import pandas as pd
