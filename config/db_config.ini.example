@@ -1,0 +1,23 @@
+# https://docs.python.org/3/library/configparser.html#supported-ini-file-structure
+# https://toml.io/en/
+# https://github.com/toml-lang/toml
+#
+# This is your config file example. make your edits and then remove 
+# .example postfix at the end.
+# 
+
+# I. Oracle
+[ORACLE_DB_ENTRY] 
+hello = dletran
+world = fakepw123
+db_name = NameOfDatabase
+hostname = HostName
+service_name = ServiceName
+port = 1521
+
+# II. SQL SERVER (windows auth)
+[SQLSERVER_DB_ENTRY]
+hello = dletran
+DRIVER = {ODBC Driver 17 for SQL Server}
+SERVER = NameOfServer
+DATABASE = NameOfDatabase
