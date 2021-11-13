@@ -19,6 +19,7 @@ import urllib
 from getpass import getpass
 from pathlib import Path
 from configparser import ConfigParser
+import os
 
 # personal libs
 from prompter import Prompter
@@ -28,6 +29,7 @@ import pandas as pd
 import pyodbc #SQL Server 
 import cx_Oracle #oracle
 import sqlalchemy as sqla
+
 
 # setup
 p = Prompter()
@@ -43,6 +45,10 @@ def ls(return_ls=False):
         return db_menu().ls_db # return list of db in config file
     #p.prompt_menu(msg="Enter an integer to intialize db", ls=ls_output)
     # TO-DO: this^ only returns the str of the database name at hte moment
+
+def config():
+    os.startfile(PATH_TO_CONFIG / CONFIG_FILE)
+
 
 class db_menu:
     """
@@ -126,7 +132,11 @@ class SQL: # level 0
         """obfuscates pw; saves config obj"""
         config['world'] = 'hello'
         self.config = config
-        
+    
+    @staticmethod    
+    def config():
+        os.startfile(PATH_TO_CONFIG / CONFIG_FILE)
+    
     def read_sql(self, sql_statement):
         """ Imitation of the pandas read_sql"""
         sql = self.readify_sql(sql_statement)
@@ -191,13 +201,13 @@ class SQLServer(SQL): # level 1
     SQL Server Database Wrapper
     Set-up: authentication config
     """
-    def __init__(self, db_config='OMOP_DeID', schema_name='dbo', trusted='yes', opt_print=True):
+    def __init__(self, config='OMOP_DeID', schema_name='dbo', trusted='yes', opt_print=True):
         # attempt ot initizlie
-        db_menu = db_menu(opt_print=opt_print)
-        if db_config is None:
-            db_config = db_menu.prompt_db()
+        config = db_menu(opt_print=opt_print).read_config(db=config) # local variable not saved
+        if config is None:
+            config = db_menu.prompt_db()
         try:
-            config = db_menu.read_config(db_config) #keep local
+            config = db_menu.read_config(config) #keep local
         except KeyError:
             print('\nERROR: Attempted to init an Oracle db.Try again.')
             return
@@ -413,7 +423,13 @@ class Oracle(SQL): # level 1
     Things to note in Oracle:
         * schemas == users
         * hostname == server
-        * service_name == nickname of tnsaora file
+        * service_name == nickname of tnsaora file`
+    This assumse you have all your Oracle ENV variables set correctly, e.g.
+        * ORACLE_BASE=/opt/oracle
+        * ORACLE_HOME=$ORACLE_BASE/full_or_instant_client_home
+        * TNS_ADMIN=$ORACLE_HOME/network/admin
+        * (full) LD_LIBRARY_PATH=$ORACLE_HOME/lib:$LD_LIBRARY_PATH
+        * (instant) LD_LIBRARY_PATH=$ORACLE_HOME:$LD_LIBRARY_PATH
     """
     def __init__(self, config='Velos', opt_print=False): #defaults to Velos
         config = db_menu(opt_print=opt_print).read_config(db=config) # local variable not saved
@@ -422,29 +438,52 @@ class Oracle(SQL): # level 1
         self._save_config(config)
 
     def __del__(self):
-        self.engine.dispose()
-        self.conn.close()
+        try:
+            self.engine.dispose()
+        except AttributeError: # never successfully made an engine
+            pass
+        try:
+            self.conn.close()
+        except AttributeError: #never sucessfully made a connection :'(
+            pass
 
     def _connect(self, config):
-        self._generate_engine(config)
-        self._generate_connection(config)
+        try:
+            self._generate_engine(config)
+            self._generate_connection(config)
         #self._generate_cursor()
+        except sqla.exc.DatabaseError as error:
+            print(error)
 
     def _generate_engine(self, config):
-        """ 
-        This assumse you have all your Oracle ENV variables set correctly, e.g.
-        * ORACLE_BASE=/opt/oracle
-        * ORACLE_HOME=$ORACLE_BASE/full_or_instant_client_home
-        * TNS_ADMIN=$ORACLE_HOME/network/admin
-        * (full) LD_LIBRARY_PATH=$ORACLE_HOME/lib:$LD_LIBRARY_PATH
-        * (instant) LD_LIBRARY_PATH=$ORACLE_HOME:$LD_LIBRARY_PATH
+        """ generate engine"""
+         # A. generate using string method
+        try:
+            self._generate_engine_dsn_method(config) 
+        # B. generate using tnsnames method
+        except sqla.exc.DatabaseError: 
+            self._generate_engine_tns_method(config)
+        except Exception as error:
+            print(f"Failed to connect to Oracle database. Error: {error}")
 
-        """
-        # dsn = cx_Oracle.makedsn(config['hostname'], config['port'], service_name=config['service_name'])
+    def _generate_engine_dsn_method(self, config):
+        """ A. generate using string method"""
+        dsn = cx_Oracle.makedsn(config['hostname'], config['port'], service_name=config['service_name'])
         self.engine = sqla.create_engine(\
-            f"oracle+cx_oracle://{config['hello']}:{config['world']}@{config['db_alias']}",
+            f"oracle+cx_oracle://{config['hello']}:{config['world']}@{dsn}",
             connect_args={"encoding":"UTF-8"},
             max_identifier_length=128) # this removes warnings
+        with self.engine.connect() as conn: # if it works, it will pass
+            pass 
+
+    def _generate_engine_tns_method(self, config):
+        """ B. generate using tnsnames method"""
+        self.engine = sqla.create_engine(\
+            f"oracle+cx_oracle://{config['hello']}:{config['world']}@{config['tns_alias']}",
+            connect_args={"encoding":"UTF-8"},
+            max_identifier_length=128) # this removes warnings
+        with self.engine.connect() as conn: # if it works, it will pass
+            pass 
 
     def _generate_connection(self, config):
             #conn_string = f"{config['hello']}/{config['world']}@{config['hostname']}/{config['service_name']}"
