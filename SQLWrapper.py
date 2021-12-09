@@ -29,6 +29,8 @@ import pandas as pd
 import pyodbc #SQL Server 
 import cx_Oracle #oracle
 import sqlalchemy as sqla
+from sqlalchemy import exc
+from cx_Oracle import InterfaceError
 
 
 # setup
@@ -141,7 +143,10 @@ class SQL: # level 0
         """ Imitation of the pandas read_sql"""
         sql = self.readify_sql(sql_statement)
         print(sql)
-        return pd.read_sql(sql, self.engine)
+        try:
+            return pd.read_sql(sql, self.engine)
+        except exc.ResourceClosedError as error:
+            pass # if no rows returned
     
     @staticmethod
     def readify_sql(sql_input):
@@ -191,9 +196,11 @@ class SQL: # level 0
     def __del__(self):
         try:
             self.engine.dispose()
-            self.cursor.close()
-            self.conn.close()
+            #self.cursor.close()
+            #self.conn.close()
         except AttributeError:
+            pass
+        except InterfaceError:
             pass
 
 class SQLServer(SQL): # level 1
