@@ -147,6 +147,10 @@ class SQL: # level 0
             return pd.read_sql(sql, self.engine)
         except exc.ResourceClosedError as error:
             pass # if no rows returned
+
+    @property
+    def schema(self):
+        return self.schema_name
     
     @staticmethod
     def readify_sql(sql_input):
@@ -186,8 +190,9 @@ class SQL: # level 0
         return sql_statement  
     
     @staticmethod
-    def order_by(sql_statement:str, orderby:str, desc:bool):
-        sql_statement = f"{sql_statement} ORDER BY {orderby}"
+    def order_by(sql_statement:str, cols:list, order_by:str, desc:bool):
+        if order_by:
+            sql_statement = f"{sql_statement} ORDER BY {order_by}"
         if desc:
             sql_statement = f"{sql_statement} DESC"
         return sql_statement
@@ -268,7 +273,7 @@ class SQLServer(SQL): # level 1
         self._generate_conn_string(config, pw=pw)
         self._generate_connection(config, pw=pw)
         self._generate_engine()
-        self._generate_cursor()
+        #self._generate_cursor()
         print('New connection successfully established.')
     
 
@@ -288,8 +293,8 @@ class SQLServer(SQL): # level 1
                          f"       COLUMN_NAME as col_name " \
                          f"FROM " \
                          f"    INFORMATION_SCHEMA.COLUMNS;")
-            self.df_info = pd.read_sql(sql_short, self.conn)
-            self.df_info_Long = pd.read_sql(sql_long, self.conn)
+            self.df_info = pd.read_sql(sql_short, self.engine)
+            self.df_info_Long = pd.read_sql(sql_long, self.engine)
 
     def update_conn(self):
         """
@@ -385,7 +390,13 @@ class SQLServer(SQL): # level 1
     def count(tbl_name):
         return pd.read_sql("SELECT COUNT(*) FROM {tbl_name}.")
     
-    def select(self, cols, tbl_name, limit=None, schema=None, where=None, order_by=None, print_bool=True, desc=0):
+    def select(self, cols, tbl_name,
+         limit=10, # limit to top 10, set to None if want all
+         schema=None,
+         where=None,
+         order_by=None,
+         print_bool=True,
+         desc=False):
         """returns a pd.DataFrame"""
         # SELECT COLS
         col_names = self.select_cols(cols) 
@@ -457,7 +468,7 @@ class Oracle(SQL): # level 1
     def _connect(self, config):
         try:
             self._generate_engine(config)
-            self._generate_connection(config)
+            #self._generate_connection(config)
         #self._generate_cursor()
         except sqla.exc.DatabaseError as error:
             print(error)
@@ -493,6 +504,7 @@ class Oracle(SQL): # level 1
             pass 
 
     def _generate_connection(self, config):
+            """DEPRECATE: engine should be sufficient"""
             #conn_string = f"{config['hello']}/{config['world']}@{config['hostname']}/{config['service_name']}"
             #self.conn = cx_Oracle.connect(conn_string)
             self.conn = self.engine.connect() # sqla connection
@@ -513,20 +525,26 @@ class Oracle(SQL): # level 1
               'Schema/User:', self.schema_name, '\n')
     
     def version(self):
-        str_version = self.conn.version
+        """prints the Oracle DB version"""
+        conn = self.engine.raw_connection()
+        str_version = conn.version
         ls_verStr = [int(x) for x in str_version.split('.')]
         d_ver = {10 : '10g',
                  11 : '11g',
                  12 : '12c',
                  1 : 'Release 1',
                  2 : 'Release 2'}
-        print('Oracle Database', d_ver[ls_verStr[0]], d_ver[ls_verStr[1]], str_version)
+        msg = 'Oracle Database '
+        msg += d_ver[ls_verStr[0]] + ' '
+        msg += d_ver[ls_verStr[1]] + ' '
+        msg += '['+str_version+']'
+        print(msg)
         
     @staticmethod
     def limit(sql_statement, limit):
         if type(limit) is int: # if SELECT TOP is defined correctly as int
             sql_statement = (f"SELECT * FROM ({sql_statement}) " \
-                             f"WHERE ROWNUM <= {limit}")
+                             f"WHERE ROWNUM <= {str(limit)}")
         return sql_statement
         
     def select(self,
@@ -534,7 +552,7 @@ class Oracle(SQL): # level 1
                tbl_name:str,
                schema:str=None,
                print_bool:bool=True,
-               limit:str=None,
+               limit:int=10, # default to 10
                where:str=None,
                order_by:str=None,
                desc:bool=False):
@@ -560,7 +578,18 @@ class Oracle(SQL): # level 1
         # LOG
         if print_bool:
             self.save_sql_hx(sql_statement + ';')
-        return pd.read_sql(sql_statement, con=self.conn)
+        return pd.read_sql(sql_statement, con=self.engine)
+
+    def columns(self, tbl_name:str) -> pd.core.indexes.base.Index:
+        df_result = self.select('*', tbl_name, limit=1, print_bool=False)
+        return df_result.columns
+
+    def tables(self) -> list:
+        """returns all table names in connected database (of this schema;user)"""
+        df_t = self.read_sql('SELECT table_name \
+                              FROM user_tables \
+                              ORDER BY table_name')
+        return df_t['table_name'].tolist()
     
     def insert(self):
         pass
