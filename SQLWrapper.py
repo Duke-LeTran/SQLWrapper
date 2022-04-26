@@ -81,7 +81,7 @@ class db_menu:
         config = ConfigParser() #keep local
         path = self.path_to_config / self.db_config #self.d_db[self.db_type]
         if opt_print and db is not None:
-            print(f'Initializing database using config file from {path} using [{db}].')
+            print(f'Initializing database connection using config file from {path} using [{db}].')
         config.read(path)
         return config
         
