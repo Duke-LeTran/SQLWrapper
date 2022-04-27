@@ -18,11 +18,13 @@ Research Infrastructure, IT Health Informatics, UC Davis Health
 import urllib
 from getpass import getpass
 from pathlib import Path
-from configparser import ConfigParser
+import logging
+
 import os
 
 # personal libs
-from prompter import Prompter
+from sqlwrapper.prompter import Prompter
+from sqlwrapper.dbmenu import db_menu
 
 # db drviers 
 import pandas as pd
@@ -37,14 +39,15 @@ from cx_Oracle import InterfaceError
 p = Prompter()
 PATH_TO_CONFIG = Path.home() / Path('.mypylib')
 CONFIG_FILE = 'db_config.ini' #name of your config file
+log = logging.getLogger(__name__)
 
 def ls(return_ls=False):
     """prints list of db in config file"""
     print("DATABASES\n-----")
-    for i, db in enumerate(db_menu().ls_db):
+    for i, db in enumerate(db_menu(PATH_TO_CONFIG, CONFIG_FILE).ls_db):
         print(i, db)
     if return_ls:
-        return db_menu().ls_db # return list of db in config file
+        return db_menu(PATH_TO_CONFIG, CONFIG_FILE).ls_db # return list of db in config file
     #p.prompt_menu(msg="Enter an integer to intialize db", ls=ls_output)
     # TO-DO: this^ only returns the str of the database name at hte moment
 
@@ -52,70 +55,7 @@ def config():
     os.startfile(PATH_TO_CONFIG / CONFIG_FILE)
 
 
-class db_menu:
-    """
-    Manages the config file
-    SET-UP:
-        * path_to_config
-        * db_config.ini file
-    """
-    def __init__(self, opt_print=True):
-        """Windows Config Utils, create child class as necessary"""
-        self.__setup_options() #get setup options
-        self.__ls_db(opt_print=opt_print) # get list of db from config files
-        self.db_selected = None
-        
-    def __setup_options(self):
-        """
-        SETUP: These need to be setup once before use
-        """
-        self.path_to_config = PATH_TO_CONFIG
-        self.db_config = CONFIG_FILE
-    
-    def __ls_db(self, opt_print):
-        """# get list of db from config files"""
-        config = self.__init_config(opt_print=opt_print)
-        self.ls_db = config.sections()
-    
-    def __init_config(self, db=None, opt_print=True):
-        config = ConfigParser() #keep local
-        path = self.path_to_config / self.db_config #self.d_db[self.db_type]
-        if opt_print and db is not None:
-            print(f'Initializing database connection using config file from {path} using [{db}].')
-        config.read(path)
-        return config
-        
-    def prompt_db(self):
-        """prompts user for database to initialize"""
-        msg = "Which database did u wanna initialize? Select a number >> "
-        usr_answer = -1
-        ls_db = self.ls_db
-        ls_db.insert(0,'Exit.')
-        while usr_answer < 0:
-            try:
-                print("MENU\n-----")
-                for i, db in enumerate(ls_db):
-                    print(i, db)
-                usr_answer = int(input(msg))
-            except ValueError: # if user 
-                print("I said number bro, specifically, an integer.")
-                continue
-            if usr_answer == 0: # if user wants to exit prompt.
-                return None
-            if usr_answer in range(len(ls_db)): #if correct answer.
-                return ls_db[usr_answer]
-            else: # repeat if error
-                print("Number not in list. Exiting. Try again.")
-                break
-        
-    def read_config(self, db=None):
-        """ This function is intentonally desigend to be obfuscated"""
-        config = self.__init_config(db)
-        if db is None: # if none, prompt for database
-            db_menu = self.prompt_db()
-        else:
-            db_menu = db # else, use the database provided
-        return config[db_menu]
+
     
 class SQL: # level 0
     """ABSTRACT BASE CLASS"""
@@ -127,8 +67,8 @@ class SQL: # level 0
         self.sqlHx = pd.Series()
         self.p = Prompter()
 
-    def _generate_cursor(self):
-        self.cursor = self.conn.cursor()
+    # def _generate_cursor(self):
+    #     self.cursor = self.conn.cursor()
     
     def _save_config(self, config):
         """obfuscates pw; saves config obj"""
@@ -139,6 +79,46 @@ class SQL: # level 0
     def config():
         os.startfile(PATH_TO_CONFIG / CONFIG_FILE)
     
+    @staticmethod
+    def truncate(schema:str, table:str, engine:pd.DataFrame):
+        """
+        You can use this to truncate other tables too, static method
+        """
+        conn = engine.raw_connection()
+        cursor = conn.cursor()
+        log.info("=======================================================")
+        log.info(f"TRUNCATE TABLE {schema}.{table}... ")
+        log.info("=======================================================")
+        cursor.execute(f"TRUNCATE TABLE {schema}.{table}")
+        log.info("Table truncated, done!")
+        conn.close()
+    
+    @staticmethod
+    def merge_frames(frames:list, on='key'):
+        """
+        Parameters: pass a list of dataframes
+        Notes:
+        * Uses recursion to merge frames
+        * similar to pd.concat()
+        * will merge on single-to-many keys -- SO BECAREFUL 
+        """
+        print('❤️' * len(frames))
+        if len(frames) > 2: # if more than 2 dataframes
+            # pass deeper
+            ##time.sleep(1)
+            result = merge_frames(frames[:-1], on=on) # drop the last one
+            # merge some action item
+            print('🌱' * len(frames))
+            ##time.sleep(1)
+            result = pd.merge(result, frames[-1])
+            return result
+        else: # else only two left..
+            ##time.sleep(1)
+            print('BOTTOM!!')
+            print('🌱' * len(frames))
+            # merge first pair of dataframes
+            return pd.merge(frames[0], frames[1], on=on)
+    
     def read_sql(self, sql_statement):
         """ Imitation of the pandas read_sql"""
         sql = self.readify_sql(sql_statement)
@@ -148,9 +128,9 @@ class SQL: # level 0
         except exc.ResourceClosedError as error:
             pass # if no rows returned
 
-    @property
-    def schema(self):
-        return self.schema_name
+    # @property
+    # def schema(self):
+    #     return self.schema_name
     
     @staticmethod
     def readify_sql(sql_input):
@@ -215,7 +195,7 @@ class SQLServer(SQL): # level 1
     """
     def __init__(self, config='OMOP_DeID', schema_name='dbo', trusted='yes', opt_print=True):
         # attempt ot initizlie
-        config = db_menu(opt_print=opt_print).read_config(db=config) # local variable not saved
+        config = db_menu(PATH_TO_CONFIG, CONFIG_FILE, opt_print=opt_print).read_config(db=config) # local variable not saved
         if config is None:
             config = db_menu.prompt_db()
         try:
@@ -267,12 +247,17 @@ class SQLServer(SQL): # level 1
                                          f'{self.url_conn_string}')
         self.engine = sqla.create_engine(self.omop_string)
 
+    def _generate_inspector(self):
+        from sqlalchemy import inspect
+        self.inspector = inspect(self.engine)
+
     def _connect(self, config, pw=None):
         if config['UID'] is not None:
             pw = getpass()
         self._generate_conn_string(config, pw=pw)
         self._generate_connection(config, pw=pw)
         self._generate_engine()
+        self._generate_inspector()
         #self._generate_cursor()
         print('New connection successfully established.')
     
@@ -450,7 +435,7 @@ class Oracle(SQL): # level 1
         * (instant) LD_LIBRARY_PATH=$ORACLE_HOME:$LD_LIBRARY_PATH
     """
     def __init__(self, config='Velos', opt_print=False): #defaults to Velos
-        config = db_menu(opt_print=opt_print).read_config(db=config) # local variable not saved
+        config = db_menu(PATH_TO_CONFIG, CONFIG_FILE, opt_print=opt_print).read_config(db=config) # local variable not saved
         super(Oracle, self).__init__(schema_name=config['hello']) # username is schema
         self._connect(config)
         self._save_config(config)
@@ -464,15 +449,7 @@ class Oracle(SQL): # level 1
             self.conn.close()
         except AttributeError: #never sucessfully made a connection :'(
             pass
-
-    def _connect(self, config):
-        try:
-            self._generate_engine(config)
-            #self._generate_connection(config)
-        #self._generate_cursor()
-        except sqla.exc.DatabaseError as error:
-            print(error)
-
+    
     def _generate_engine(self, config):
         """ generate engine"""
          # A. generate using string method
@@ -502,14 +479,32 @@ class Oracle(SQL): # level 1
             max_identifier_length=128) # this removes warnings
         with self.engine.connect() as conn: # if it works, it will pass
             pass 
+    
+    def _generate_inspector(self):
+        from sqlalchemy import inspect
+        self.inspector = inspect(self.engine)
 
-    def _generate_connection(self, config):
-            """DEPRECATE: engine should be sufficient"""
-            #conn_string = f"{config['hello']}/{config['world']}@{config['hostname']}/{config['service_name']}"
-            #self.conn = cx_Oracle.connect(conn_string)
-            self.conn = self.engine.connect() # sqla connection
+    def _connect(self, config):
+        try:
+            self._generate_engine(config)
+            self._generate_inspector()
+            #self._generate_connection(config)
+        #self._generate_cursor()
+        except sqla.exc.DatabaseError as error:
+            print(error)
 
-    def ls_schema(self):
+    
+    def tables(self) -> list:
+        """returns all table names in connected database (of this schema;user)"""
+        df_t = self.read_sql('SELECT table_name \
+                              FROM user_tables \
+                              ORDER BY table_name')
+        return df_t['table_name'].tolist()
+
+    def schemas(self):
+        return self.inspector.get_schema_names()
+
+    def ls_schemas(self):
         sql_statement = (f'SELECT username AS schema_name ' \
                          f'FROM ' \
                          f'    SYS.all_users ' \
@@ -517,8 +512,18 @@ class Oracle(SQL): # level 1
                          f'    username')
         print(self.readify_sql(sql_statement))
         return pd.read_sql(self.readify_sql(sql_statement), self.engine)
+    
+    def columns(self, tbl_name:str, verbose=False, return_dtype=False) -> pd.core.indexes.base.Index:
+        if verbose:
+            return self.inspector.get_columns(tbl_name, dialect_options='oracle')
+        elif return_dtype:
+            df_dtype = pd.DataFrame(self.inspector.get_columns(tbl_name, dialect_options='oracle'))
+            return {k:v for k,v in zip(df_dtype['name'], df_dtype['type'])}
+        else:
+            df_result = self.select('*', tbl_name, limit=1, print_bool=False)
+            return df_result.columns
 
-    def print_scope(self):
+    def scope(self):
         print('Current Scope...\n',
               'Server:', self.config['hostname'], "#aka hostname", '\n',
               'Database:', self.config['db_name'], '\n', 
@@ -580,16 +585,9 @@ class Oracle(SQL): # level 1
             self.save_sql_hx(sql_statement + ';')
         return pd.read_sql(sql_statement, con=self.engine)
 
-    def columns(self, tbl_name:str) -> pd.core.indexes.base.Index:
-        df_result = self.select('*', tbl_name, limit=1, print_bool=False)
-        return df_result.columns
 
-    def tables(self) -> list:
-        """returns all table names in connected database (of this schema;user)"""
-        df_t = self.read_sql('SELECT table_name \
-                              FROM user_tables \
-                              ORDER BY table_name')
-        return df_t['table_name'].tolist()
+
+
     
     def insert(self):
         pass
