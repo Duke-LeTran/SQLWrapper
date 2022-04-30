@@ -8,11 +8,13 @@ class Prompter:
         self.msg_menu = "Please select an integer"
         self.msg_input = "Please enter your input"
 
-    def prompt_confirmation(self, msg=None):
+    def prompt_confirmation(self, msg=None, answer=None):
         """
         Input: msg
         Return: True or False
         """
+        if answer.lower() in self.ls_yes:
+            return True
         msg = self.msg_generic if (msg is None) else msg #if none, generic; else msg
         return True if (input(msg + " (y/n) >> ").lower() in self.ls_yes) else False
     
@@ -21,7 +23,12 @@ class Prompter:
         Input: msg, ls
         Return: item from list
         """ 
+        # set message or use default
         msg = self.msg_menu if (msg is None) else msg 
+        # if no list of menu passed, return hints
+        if len(ls) == 0:
+            print('You must pass a list for the menu using the parameter"ls=[]".')
+            return False
         while True:
             try: # try 1) Print menu 2) get user input
                 for i,j in enumerate(ls):
@@ -36,7 +43,7 @@ class Prompter:
             if user_input in range(len(ls)): # if appropriate response
                 return ls[user_input]
             else: # else int not in range
-                print("Value is not in range. Try again.")
+                print("Value is not in range. Try again. Type 'exit' to exit menu.")
 
     def prompt_input(self, msg=None):
         msg = self.msg_menu if (msg is None) else msg 

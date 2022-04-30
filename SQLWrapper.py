@@ -25,6 +25,7 @@ import os
 # personal libs
 from sqlwrapper.prompter import Prompter
 from sqlwrapper.dbmenu import db_menu
+#from pycapdb import timer
 
 # db drviers 
 import pandas as pd
@@ -80,10 +81,12 @@ class SQL: # level 0
         os.startfile(PATH_TO_CONFIG / CONFIG_FILE)
     
     @staticmethod
-    def truncate(schema:str, table:str, engine:pd.DataFrame):
+    def truncate(schema:str, table:str, engine:pd.DataFrame, answer=None):
         """
         You can use this to truncate other tables too, static method
         """
+        if not p.prompt_confirmation(answer=answer): # if user denies
+            print('Did not truncate, canceled by user.')
         conn = engine.raw_connection()
         cursor = conn.cursor()
         log.info("=======================================================")
@@ -94,7 +97,7 @@ class SQL: # level 0
         conn.close()
     
     @staticmethod
-    def merge_frames(frames:list, on='key'):
+    def merge_frames(frames:list, on:str=None):
         """
         Parameters: pass a list of dataframes
         Notes:
@@ -102,6 +105,9 @@ class SQL: # level 0
         * similar to pd.concat()
         * will merge on single-to-many keys -- SO BECAREFUL 
         """
+        if on is None:
+            print('You must pass a key to merge on. Use parameter "on=your_key".')
+            return
         print('❤️' * len(frames))
         if len(frames) > 2: # if more than 2 dataframes
             # pass deeper
@@ -492,7 +498,6 @@ class Oracle(SQL): # level 1
         #self._generate_cursor()
         except sqla.exc.DatabaseError as error:
             print(error)
-
     
     def tables(self) -> list:
         """returns all table names in connected database (of this schema;user)"""
@@ -500,6 +505,12 @@ class Oracle(SQL): # level 1
                               FROM user_tables \
                               ORDER BY table_name')
         return df_t['table_name'].tolist()
+    
+    def tables2(self) -> list:
+        """returns all table names in connected database (of this schema;user)"""
+        ls_tbls = self.inspector.get_table_names(schema=self.schema_name.lower())
+        ls_tbls.sort()
+        return ls_tbls
 
     def schemas(self):
         return self.inspector.get_schema_names()
@@ -515,7 +526,7 @@ class Oracle(SQL): # level 1
     
     def columns(self, tbl_name:str, verbose=False, return_dtype=False) -> pd.core.indexes.base.Index:
         if verbose:
-            return self.inspector.get_columns(tbl_name, dialect_options='oracle')
+            return self.inspector.get_columns(tbl_name.lower(), dialect_options='oracle')
         elif return_dtype:
             df_dtype = pd.DataFrame(self.inspector.get_columns(tbl_name, dialect_options='oracle'))
             return {k:v for k,v in zip(df_dtype['name'], df_dtype['type'])}
@@ -573,7 +584,7 @@ class Oracle(SQL): # level 1
         # SCHEMA
         prefix = self.check_schema(schema, self.schema_name)
         # SQL SKELETON
-        sql_statement = f"SELECT {col_names} FROM {prefix}.{tbl_name}"
+        sql_statement = f"SELECT {col_names} FROM {prefix}.{tbl_name.lower()}"
         # WHERE
         sql_statement = self.where(sql_statement, where)
         # ORDER BY
@@ -585,9 +596,13 @@ class Oracle(SQL): # level 1
             self.save_sql_hx(sql_statement + ';')
         return pd.read_sql(sql_statement, con=self.engine)
 
-
-
-
+    def drop(self, tbl_name:str=None):
+        """For now this only drops tables, will expand in future to include sequences, etc."""
+        if tbl_name not in self.tables():
+            print(f'Table {tbl_name} does not exist in the db. Nothing to drop.')
+        else:
+            if p.prompt_confirmation():
+                self.read_sql('DROP TABLE {tbl_name};')
     
     def insert(self):
         pass
