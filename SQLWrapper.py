@@ -19,6 +19,7 @@ import urllib
 from getpass import getpass
 from pathlib import Path
 import logging
+from typing import Union
 
 import os
 
@@ -80,13 +81,21 @@ class SQL: # level 0
     def config():
         os.startfile(PATH_TO_CONFIG / CONFIG_FILE)
     
-    @staticmethod
-    def truncate(schema:str, table:str, engine:pd.DataFrame, answer=None):
+    def truncate(self, table:str, schema:str=None, engine=None, answer=None):
         """
         You can use this to truncate other tables too, static method
         """
+        # set defaults
+        if schema is None:
+            schema = self.schema_name
+        if engine is None:
+            engine = self.engine
+        
+        # prompt for confirmation
         if not p.prompt_confirmation(answer=answer): # if user denies
             print('Did not truncate, canceled by user.')
+
+        # create connection and truncate
         conn = engine.raw_connection()
         cursor = conn.cursor()
         log.info("=======================================================")
@@ -125,10 +134,11 @@ class SQL: # level 0
             # merge first pair of dataframes
             return pd.merge(frames[0], frames[1], on=on)
     
-    def read_sql(self, sql_statement):
+    def read_sql(self, sql_statement, silent=False):
         """ Imitation of the pandas read_sql"""
         sql = self.readify_sql(sql_statement)
-        print(sql)
+        if not silent:
+            print(sql)
         try:
             return pd.read_sql(sql, self.engine)
         except exc.ResourceClosedError as error:
@@ -499,11 +509,11 @@ class Oracle(SQL): # level 1
         except sqla.exc.DatabaseError as error:
             print(error)
     
-    def tables(self) -> list:
+    def tables(self, silent=False) -> list:
         """returns all table names in connected database (of this schema;user)"""
         df_t = self.read_sql('SELECT table_name \
                               FROM user_tables \
-                              ORDER BY table_name')
+                              ORDER BY table_name', silent=silent)
         return df_t['table_name'].tolist()
     
     def tables2(self) -> list:
@@ -529,7 +539,7 @@ class Oracle(SQL): # level 1
             return self.inspector.get_columns(tbl_name.lower(), dialect_options='oracle')
         elif return_dtype:
             df_dtype = pd.DataFrame(self.inspector.get_columns(tbl_name, dialect_options='oracle'))
-            return {k:v for k,v in zip(df_dtype['name'], df_dtype['type'])}
+            return {k.upper():v for k,v in zip(df_dtype['name'], df_dtype['type'])}
         else:
             df_result = self.select('*', tbl_name, limit=1, print_bool=False)
             return df_result.columns
@@ -564,8 +574,8 @@ class Oracle(SQL): # level 1
         return sql_statement
         
     def select(self,
-               cols:list,
                tbl_name:str,
+               cols:Union[list, str]='*',
                schema:str=None,
                print_bool:bool=True,
                limit:int=10, # default to 10
@@ -594,15 +604,21 @@ class Oracle(SQL): # level 1
         # LOG
         if print_bool:
             self.save_sql_hx(sql_statement + ';')
-        return pd.read_sql(sql_statement, con=self.engine)
+        df_output = pd.read_sql(sql_statement, con=self.engine)
+        # convert names to capital for consistency
+        df_output.columns = [x.upper() for x in df_output.columns]
+        return df_output
 
-    def drop(self, tbl_name:str=None):
+    def drop(self, tbl_name:str, what:str='TABLE', skip_prompt=False, answer=None):
         """For now this only drops tables, will expand in future to include sequences, etc."""
-        if tbl_name not in self.tables():
+        if skip_prompt:
+            answer = 'yes'
+        if tbl_name not in self.tables(silent=True):
             print(f'Table {tbl_name} does not exist in the db. Nothing to drop.')
         else:
-            if p.prompt_confirmation():
-                self.read_sql('DROP TABLE {tbl_name};')
+            sql_statement = f'DROP {what} {self.schema_name}.{tbl_name}'
+            if p.prompt_confirmation(msg=f'Are you sure your want to drop {tbl_name}?', answer=answer):
+                self.read_sql(sql_statement)
     
     def insert(self):
         pass

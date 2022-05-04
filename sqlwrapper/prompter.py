@@ -8,12 +8,12 @@ class Prompter:
         self.msg_menu = "Please select an integer"
         self.msg_input = "Please enter your input"
 
-    def prompt_confirmation(self, msg=None, answer=None):
+    def prompt_confirmation(self, msg:str=None, answer:str=None):
         """
         Input: msg
         Return: True or False
         """
-        if answer.lower() in self.ls_yes:
+        if (answer is not None) and (answer.lower() in self.ls_yes):
             return True
         msg = self.msg_generic if (msg is None) else msg #if none, generic; else msg
         return True if (input(msg + " (y/n) >> ").lower() in self.ls_yes) else False
