@@ -1,5 +1,6 @@
 """
 SQLWrapper.py
+    |--> db_menu.py
     |--> prompter.py
     
 DESCRIPTION: 
@@ -193,16 +194,25 @@ class SQL: # level 0
             sql_statement = f"{sql_statement} DESC"
         return sql_statement
                 
-        
+    def tables(self):
+        try:
+            return self.inspector.get_table_names()
+        except Exception as error:
+            log.error(error)
+    
     def __del__(self):
+        from cx_Oracle import OperationalError
         try:
             self.engine.dispose()
             #self.cursor.close()
             #self.conn.close()
-        except AttributeError:
-            pass
-        except InterfaceError:
-            pass
+        except AttributeError as error:
+            log.info(error)
+        except InterfaceError as error:
+            log.info(error)
+        except OperationalError as error:
+            log.info('db.engine likely idled and already closed, don\'t worry.')
+            log.info(error)
 
 class SQLServer(SQL): # level 1
     """
@@ -541,7 +551,7 @@ class Oracle(SQL): # level 1
             df_dtype = pd.DataFrame(self.inspector.get_columns(tbl_name, dialect_options='oracle'))
             return {k.upper():v for k,v in zip(df_dtype['name'], df_dtype['type'])}
         else:
-            df_result = self.select('*', tbl_name, limit=1, print_bool=False)
+            df_result = self.select(tbl_name, limit=1, print_bool=False)
             return df_result.columns
 
     def scope(self):
@@ -622,5 +632,154 @@ class Oracle(SQL): # level 1
     
     def insert(self):
         pass
+    
+    def _fix_data(self, df_input:pd.DataFrame):
+        """
+        * str: replace the actual string "None" with an empty string
+        * int: convert to string; convert pd.IntNull to empty string
+        """
+        import numpy as np
+        df_temp = df_input.copy()
+        ls_ints = [np.int64, int] #collect as they increase
+        # A. Fix Strings,replace the actual string "None" with an empty string
+        df_temp = df_temp.replace('None', '')
+        df_temp = df_temp.fillna('')
+        
+       
+        for col in df_temp.columns:
+             # B. Fix Integers
+            if df_temp[col].dtype in ls_ints: # if integer
+                print('INTEGER: ', col)
+                # convert to string
+                df_temp.loc[:,col] = df_temp[col].astype(str)
+                log.info(df_temp.loc[:,col])
+                # replace pd.IntDtype64 with empty string
+                df_temp.loc[:,col] = df_temp[col].replace('<NA>', '')
+            elif 'date' in col.lower():
+                print('DATE: ', col)
+                try: # remove time, only date
+                    df_temp[col] = df_temp[col].apply(pd.to_datetime).dt.strftime('%Y-%m-%d')
+                except: # treat as null
+                    df_temp[col] = ''
+            elif (df_temp[col].dtype == bool) or (df_temp[col].dtype.name == 'bool'):
+                print('BOOL: ', col)
+                bool_dict = {'True' : str(1), 'False' : str(0)}
+                df_temp[col] = df_temp[col].astype(str).apply(lambda x : bool_dict[x])
+        
+        df_temp = df_temp.replace('None', '')
+        df_temp = df_temp.fillna('')
+
+        return df_temp
+    
+    def oracle_generate_cols_dtype(self, df_input):
+        max_len = {}
+        for col in df_input.columns:
+            try:
+                if df_input[col].dtype.name is 'bool':
+                    max_len[col] = NUMBER(1,0)
+                else:
+                    max_len[col.upper()] = df_input[col].str.len().max()
+            except AttributeError as error:
+                if 'date' in col.lower():
+                    max_len[col.upper()] = 'date'
+                print(error)
+                print(col)
+        #  setting datatypes
+        result_dict = {}
+        for col, dtype in max_len.items():
+            try:
+                if 'date' in col.lower():
+                    result_dict[col] = DATE
+                elif type(dtype) == NUMBER:
+                    result_dict[col.upper()] = dtype
+                else:
+                    result_dict[col] = VARCHAR2(int(int(dtype)*1.5))
+            except:
+                print(col, dtype)
+                result_dict[col] = VARCHAR2(100)
+        return result_dict
+
+    def to_oracle(self, df_input, schema, table, engine, cols_all_caps=False):
+        """
+        Utilizes cx_oracle's executemany() method, which is much faster
+        Credit to Bill Riedl's function, see repository:
+            - gitlab/ucd-ri-pydbutils/PandasDBDataStreamer.py
+        """
+        from sqlalchemy.exc import DatabaseError
+        if cols_all_caps:
+            df_input.columns = [x.upper() for x in df_input.columns]
+        conn = engine.raw_connection()
+        cur = conn.cursor()
+        #grab column names as strings
+        df_temp = self._fix_data(df_input.copy())
+        cols = str(', '.join(df_temp.columns.tolist()))
+        # convert each value of each row to strings
+        func = lambda ls : [str(x) for x in ls]
+        # converts df to a list of string values 
+        lines = [tuple(func(x)) for x in df_temp.values]
+        #
+        bind_vars = ''
+        for i in range(len(df_temp.columns)):
+            bind_vars = bind_vars + ':' + str(i + 1) + ','
+        # remove trailing 
+        bind_vars = bind_vars[:-1]
+        # create sql statement
+        sql = f'INSERT INTO {schema}.{table.upper()} ({cols}) values ({bind_vars})'
+        #print(sql)
+        cur.execute("ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD HH24:MI:SS'")
+        log.info("=======================================================")
+        log.info(f" cx_Oracle EXECUTEMANY, INSERT INTO {schema}.{table}... ")
+        log.info("=======================================================")
+        log.debug(sql)
+        try:
+            cur.executemany(sql, lines)
+        except Exception as e:
+            log.warning(e)
+            cur.close()
+            conn.close()
+            return sql, lines
+        conn.commit()
+        cur.close()
+        conn.close()
+        return sql, lines[:10]
 
 
+class MariaDB(SQL): # level 1
+    """
+    MariaDB Database Wrapper
+    Things to note in Oracle:
+        * schemas == users
+        * hostname == server
+        * service_name == nickname of tnsaora file`
+    This assumse you have all your Oracle ENV variables set correctly, e.g.
+
+    """
+    def __init__(self, config='redcap', opt_print=False): #defaults to Velos
+        config = db_menu(PATH_TO_CONFIG, CONFIG_FILE, opt_print=opt_print).read_config(db=config) # local variable not saved
+        super(MariaDB, self).__init__(schema_name=config['hello']) # username is schema
+        self._generate_engine(config)
+        self._generate_inspector
+        self._save_config(config)
+
+    def __del__(self):
+        try:
+            self.engine.dispose()
+        except AttributeError: # never successfully made an engine
+            pass
+        try:
+            self.conn.close()
+        except AttributeError: #never sucessfully made a connection :'(
+            pass
+    
+    def _generate_engine(self, config):
+        """ generate engine"""
+         # A. generate using string method
+        try:
+            self.engine = sqla.create_engine(\
+                f"mysql+pymysql://{config['hello']}:{config['world']}@{config['hostname']}:{config['port']}/{config['db_name']}")
+        except Exception as error:
+            log.error(error)
+    
+    def _generate_inspector(self):
+        from sqlalchemy import inspect
+        self.inspector = inspect(self.engine)
