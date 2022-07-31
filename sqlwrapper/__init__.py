@@ -13,6 +13,15 @@ SETUP:
 Duke LeTran <duke.letran@gmail.com; daletran@ucdavis.edu>
 Research Infrastructure, IT Health Informatics, UC Davis Health
 """
+#setup
+from SQLWrapper.base import SQL
+from SQLWrapper.config import PATH_TO_CONFIG, CONFIG_FILE
+from SQLWrapper.dbmenu import db_menu
+from SQLWrapper.prompter import Prompter
+from SQLWrapper.df_tools import max_len_cols, read_xlsx, sheet_to_df
 
-from SQLWrapper.SQLWrapper import *
-from SQLWrapper.df_tools import *
+# database connections
+from SQLWrapper.oracle import Oracle
+from SQLWrapper.mariadb import MariaDB
+from SQLWrapper.sqlserver import SQLServer
+
