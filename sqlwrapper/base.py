@@ -43,6 +43,7 @@ class SQL: # level 0
     # def _generate_cursor(self):
     #     self.cursor = self.conn.cursor()
     
+    
     def _save_config(self, config):
         """obfuscates pw; saves config obj"""
         config['world'] = 'hello'
@@ -166,7 +167,7 @@ class SQL: # level 0
                 
     def tables(self):
         try:
-            return self.inspector.get_table_names()
+            return sorted(self.inspector.get_table_names())
         except Exception as error:
             log.error(error)
     

@@ -84,18 +84,18 @@ class Oracle(SQL): # level 1
         except sqlalchemy.exc.DatabaseError as error:
             print(error)
     
-    def tables(self, silent=False) -> list:
-        """returns all table names in connected database (of this schema;user)"""
-        df_t = self.read_sql('SELECT table_name \
-                              FROM user_tables \
-                              ORDER BY table_name', silent=silent)
-        return df_t['table_name'].tolist()
+    # def tables(self, silent=False) -> list:
+    #     """returns all table names in connected database (of this schema;user)"""
+    #     df_t = self.read_sql('SELECT table_name \
+    #                           FROM user_tables \
+    #                           ORDER BY table_name', silent=silent)
+    #     return df_t['table_name'].tolist()
     
-    def tables2(self) -> list:
-        """returns all table names in connected database (of this schema;user)"""
-        ls_tbls = self.inspector.get_table_names(schema=self.schema_name.lower())
-        ls_tbls.sort()
-        return ls_tbls
+    # def tables2(self) -> list:
+    #     """returns all table names in connected database (of this schema;user)"""
+    #     ls_tbls = self.inspector.get_table_names(schema=self.schema_name.lower())
+    #     ls_tbls.sort()
+    #     return ls_tbls
 
     def schemas(self):
         return self.inspector.get_schema_names()
@@ -120,9 +120,9 @@ class Oracle(SQL): # level 1
             return df_result.columns
 
     def scope(self):
-        print('Current Scope...\n',
-              'Server:', self.config['hostname'], "#aka hostname", '\n',
-              'Database:', self.config['db_name'], '\n', 
+        print('[Current Scope]\n',
+              'Server:', self.config['hostname'].split('.')[0], "#aka hostname", '\n',
+              'Database:', self.config['service_name'].split('.')[0], '\n', 
               'Schema/User:', self.schema_name, '\n')
     
     def version(self):

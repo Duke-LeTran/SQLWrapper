@@ -30,24 +30,27 @@ class SQLServer(SQL): # level 1
         super(SQLServer, self).__init__(db_name=config['DATABASE'], 
                                         schema_name=schema_name)
         self.trusted_bool = trusted
+        self.engine=None
         self._connect(config)
         self._generate_dbinfo()
         self._save_config(config)
 
     def __del__(self):
         msg_closed_success = 'Both the cursor and connection are successfully closed.'
-        try:
-            super().__del__()
-            print(f'{msg_closed_success}')
-        except pyodbc.ProgrammingError:
-            try:
-                self.conn.close()
-                print(f'Cursor previously closed. {msg_closed_success}')
-            except pyodbc.ProgrammingError:
-                print(f'{msg_closed_success}')
+        if self.engine:
+            self.engine.dispose()
+        # try:
+        #     super().__del__()
+        #     print(f'{msg_closed_success}')
+        # except pyodbc.ProgrammingError:
+        #     try:
+        #         self.conn.close()
+        #         print(f'Cursor previously closed. {msg_closed_success}')
+        #     except pyodbc.ProgrammingError:
+        #         print(f'{msg_closed_success}')
                 
     def _generate_conn_string(self, config):
-        if config['world'] is None: # if no username
+        if config['world'] is None: # if windows auth (no username)
             self.conn_string = (f"DRIVER={config['DRIVER']};" \
                                 f"SERVER={config['SERVER']};" \
                                 f"DATABASE={config['DATABASE']};" \
@@ -69,6 +72,18 @@ class SQLServer(SQL): # level 1
     #         uid=config['hello'], 
     #         pw=config['world']
     #     )
+
+    def use_db(self, db_name=None):
+        """USE DATABASE <new-db-name>;"""
+        if db_name is None:
+            print(f'No changes to db_name {self.db_name}')
+            return
+        print(f'Current database: {self.prefix}')
+        print(f'Change to database: {db_name}.{self.schema_name}')
+        msg='Are you sure you want to change databases?'
+        if self.p.prompt_confirmation(msg=msg):
+            self.db_name = db_name
+            self.prefix = db_name + '.' + self.schema_name
     
     def _generate_engine(self):
         self.url_conn_string = (f'mssql+pyodbc:///?odbc_connect=' \
@@ -89,7 +104,7 @@ class SQLServer(SQL): # level 1
         self._generate_engine()
         self._generate_inspector()
         #self._generate_cursor()
-        print('New connection successfully established.')
+        print(f'New connection successfully established to: {self.prefix}')
     
 
     def _generate_dbinfo(self):
@@ -189,7 +204,7 @@ class SQLServer(SQL): # level 1
         return df_output
         
     def scope(self):
-        print('Current Scope...\n',
+        print('[Current Scope]\n',
               'Server:', self.config['SERVER'], '\n',
               'Database:', self.config['DATABASE'], '\n', 
               'Schema:', self.schema_name, '\n')
