@@ -27,6 +27,7 @@ import os
 # personal libs
 from sqlwrapper.prompter import Prompter
 from sqlwrapper.dbmenu import db_menu
+from sqlwrapper.df_tools import max_len_cols, read_xlsx, sheet_to_df
 #from pycapdb import timer
 
 # db drviers 
@@ -665,6 +666,8 @@ class Oracle(SQL): # level 1
                 print('BOOL: ', col)
                 bool_dict = {'True' : str(1), 'False' : str(0)}
                 df_temp[col] = df_temp[col].astype(str).apply(lambda x : bool_dict[x])
+            else:
+                print('VARCHAR2: ', col)
         
         df_temp = df_temp.replace('None', '')
         df_temp = df_temp.fillna('')
