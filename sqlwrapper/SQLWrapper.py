@@ -25,9 +25,9 @@ from typing import Union
 import os
 
 # personal libs
-from sqlwrapper.prompter import Prompter
-from sqlwrapper.dbmenu import db_menu
-from sqlwrapper.df_tools import max_len_cols, read_xlsx, sheet_to_df
+from SQLWrapper.prompter import Prompter
+from SQLWrapper.dbmenu import db_menu
+from SQLWrapper.df_tools import max_len_cols, read_xlsx, sheet_to_df
 #from pycapdb import timer
 
 # db drviers 

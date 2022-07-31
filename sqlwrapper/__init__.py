@@ -14,5 +14,5 @@ Duke LeTran <duke.letran@gmail.com; daletran@ucdavis.edu>
 Research Infrastructure, IT Health Informatics, UC Davis Health
 """
 
-from sqlwrapper.SQLWrapper import *
-from sqlwrapper.df_tools import *
+from SQLWrapper.SQLWrapper import *
+from SQLWrapper.df_tools import *
