@@ -18,7 +18,8 @@ from SQLWrapper.base import SQL
 from SQLWrapper.config import PATH_TO_CONFIG, CONFIG_FILE
 from SQLWrapper.dbmenu import db_menu
 from SQLWrapper.prompter import Prompter
-from SQLWrapper.df_tools import max_len_cols, read_xlsx, sheet_to_df
+from SQLWrapper.df_tools import max_len_cols
+from SQLWrapper.xlsx import read_xlsx, sheet_to_df
 
 # database connections
 from SQLWrapper.oracle import Oracle

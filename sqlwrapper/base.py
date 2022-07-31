@@ -14,27 +14,17 @@ SETUP:
 Duke LeTran <duke.letran@gmail.com; daletran@ucdavis.edu>
 Research Infrastructure, IT Health Informatics, UC Davis Health
 """
-
 # standard library
-import urllib
-from getpass import getpass
-from pathlib import Path
 import logging
-from typing import Union
-from SQLWrapper import Prompter
 import os
-
-# personal libs
-from SQLWrapper import Prompter
-
-#from pycapdb import timer
-
-# db drviers 
+# added libraries
 import pandas as pd
 from sqlalchemy import exc
+# SQLWrapper
+from SQLWrapper.config import PATH_TO_CONFIG, CONFIG_FILE
+from SQLWrapper.prompter import Prompter
 
-
-
+# logging
 log = logging.getLogger(__name__)
 
 p = Prompter()

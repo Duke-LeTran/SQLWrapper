@@ -22,12 +22,13 @@ class SQLServer(SQL): # level 1
         config = db_menu(PATH_TO_CONFIG, CONFIG_FILE, opt_print=opt_print).read_config(db=config) # local variable not saved
         if config is None:
             config = db_menu.prompt_db()
-        try:
-            config = db_menu.read_config(config) #keep local
-        except KeyError:
-            print('\nERROR: Attempted to init an Oracle db.Try again.')
-            return
-        super(SQLServer, self).__init__(config['DATABASE'], schema_name)
+        #try:
+        #    config = db_menu.read_config(config) #keep local
+        #except KeyError:
+        #    print('\nERROR: Attempted to init an Oracle db.Try again.')
+        #    return
+        super(SQLServer, self).__init__(db_name=config['DATABASE'], 
+                                        schema_name=schema_name)
         self.trusted_bool = trusted
         self._connect(config)
         self._generate_dbinfo()
@@ -45,8 +46,8 @@ class SQLServer(SQL): # level 1
             except pyodbc.ProgrammingError:
                 print(f'{msg_closed_success}')
                 
-    def _generate_conn_string(self, config, pw=None):
-        if config['UID'] is None:
+    def _generate_conn_string(self, config):
+        if config['world'] is None: # if no username
             self.conn_string = (f"DRIVER={config['DRIVER']};" \
                                 f"SERVER={config['SERVER']};" \
                                 f"DATABASE={config['DATABASE']};" \
@@ -57,29 +58,34 @@ class SQLServer(SQL): # level 1
             self.conn_string = (f"DRIVER={config['DRIVER']};" \
                                f"SERVER={config['SERVER']};" \
                                f"DATABASE={config['DATABASE']};" \
-                               f"UID={config['UID']};" \
-                               f"PWD={pw}")
+                               f"UID={config['hello']};" \
+                               f"PWD={config['world']}")
                                #f"TRUSTED_CONNECTION={self.trusted_bool};")
-        self.url_conn_string = urllib.parse.quote_plus(self.conn_string)
+        self.encoded_url_string = urllib.parse.quote_plus(self.conn_string)
+        return self.encoded_url_string
         
-    def _generate_connection(self, config, pw=None):
-        self.conn = pyodbc.connect(self.conn_string, uid=config['UID'], pw=pw)
-
+    # def _generate_connection(self, config):
+    #     self.conn = pyodbc.connect(self.conn_string, 
+    #         uid=config['hello'], 
+    #         pw=config['world']
+    #     )
     
     def _generate_engine(self):
-        self.omop_string = (f'mssql+pyodbc:///?odbc_connect=' \
-                                         f'{self.url_conn_string}')
-        self.engine = sqlalchemy.create_engine(self.omop_string)
+        self.url_conn_string = (f'mssql+pyodbc:///?odbc_connect=' \
+                                         f'{self.encoded_url_string}')
+        self.engine = sqlalchemy.create_engine(self.url_conn_string)
 
     def _generate_inspector(self):
         from sqlalchemy import inspect
         self.inspector = inspect(self.engine)
 
-    def _connect(self, config, pw=None):
-        if config['UID'] is not None:
-            pw = getpass()
-        self._generate_conn_string(config, pw=pw)
-        self._generate_connection(config, pw=pw)
+    def _connect(self, config):
+        if config['world'] is None:
+            config['world']=getpass()
+        else:
+            pw=config['world']
+        self._generate_conn_string(config)
+        #self._generate_connection(config)
         self._generate_engine()
         self._generate_inspector()
         #self._generate_cursor()

@@ -14,15 +14,15 @@ SETUP:
 Duke LeTran <duke.letran@gmail.com; daletran@ucdavis.edu>
 Research Infrastructure, IT Health Informatics, UC Davis Health
 """
-
-# personal libs
 import os
 import logging
-from SQLWrapper.dbmenu import db_menu
-from SQLWrapper.prompter import Prompter
-#from SQLWrapper import Prompter
 from pathlib import Path
 
+# SQLWrapper
+from SQLWrapper.dbmenu import db_menu
+from SQLWrapper.prompter import Prompter
+
+# logging
 log = logging.getLogger(__name__)
 
 # setup
