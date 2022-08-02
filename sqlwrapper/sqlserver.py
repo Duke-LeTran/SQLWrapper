@@ -106,6 +106,34 @@ class SQLServer(SQL): # level 1
         #self._generate_cursor()
         print(f'New connection successfully established to: {self.prefix}')
     
+    def _reconnect(self):
+        self.engine.dispose()
+        self.engine = None
+        config = self.config
+        print(config['hello'])
+        print(config['world'])
+        self.conn_string = (f"DRIVER={config['DRIVER']};" \
+                               f"SERVER={config['SERVER']};" \
+                               f"DATABASE={self.db_name};" \
+                               f"UID={config['hello']};" \
+                               f"PWD={config['world']}")
+        self.encoded_url_string = urllib.parse.quote_plus(self.conn_string)
+        self._generate_engine()
+        self._generate_inspector()
+
+    def use_db(self, db_name=None):
+        """USE DATABASE <new-db-name>;"""
+        if db_name is None:
+            print(f'Already current db; no changes to db_name {self.db_name}')
+            return
+        print(f'Current database: {self.prefix}')
+        print(f'Change to database: {db_name}.{self.schema_name}')
+        msg='Are you sure you want to change databases?'
+        if self.p.prompt_confirmation(msg=msg):
+            self.db_name = db_name
+            self.prefix = db_name + '.' + self.schema_name
+            self._reconnect()
+    
 
     def _generate_dbinfo(self):
             sql_long = (f"SELECT TABLE_CATALOG as db_name," \
@@ -126,27 +154,27 @@ class SQLServer(SQL): # level 1
             self.df_info = pd.read_sql(sql_short, self.engine)
             self.df_info_Long = pd.read_sql(sql_long, self.engine)
 
-    def update_conn(self):
-        """
-        Updates the connection. Things to change:
-            self.config['SERVER']
-            self.config['DATABASE']
-            self.config['world']
-            self.schema_name
-        """
-        self.conn.close()
-        #reconnect
-        self._connect(self.config)
-        self._generate_dbinfo()
-        self._save_config(self.config)
+    # def update_conn(self):
+    #     """
+    #     Updates the connection. Things to change:
+    #         self.config['SERVER']
+    #         self.config['DATABASE']
+    #         self.config['world']
+    #         self.schema_name
+    #     """
+    #     self.conn.close()
+    #     #reconnect
+    #     self._connect(self.config)
+    #     self._generate_dbinfo()
+    #     self._save_config(self.config)
         
-    def update_df(self, df_input, tbl_name):
-        """update dataframe to database"""
-        if tbl_name in set(self.info()['tbl_name']): #if df is a tbl in db
-            if p.prompt_confirmation('Table already exists. Confirm overwrite?'):
-                x = 'replace'
-        df_input.to_sql(tbl_name, self.engine, if_exists=x)
-        self._generate_dbinfo #update info
+    # def update_df(self, df_input, tbl_name):
+    #     """update dataframe to database"""
+    #     if tbl_name in set(self.info()['tbl_name']): #if df is a tbl in db
+    #         if p.prompt_confirmation('Table already exists. Confirm overwrite?'):
+    #             x = 'replace'
+    #     df_input.to_sql(tbl_name, self.engine, if_exists=x)
+    #     self._generate_dbinfo #update info
         
     def ls_schema(self):
         sql_statement = (f"SELECT s.schema_id," \
@@ -158,25 +186,25 @@ class SQLServer(SQL): # level 1
                          f"    SYS.SYSUSERS u " \
                          f"ON u.uid = s.principal_id " \
                          f"ORDER BY s.name;")
-        return pd.read_sql(sql_statement, self.conn)
+        return pd.read_sql(sql_statement, self.engine)
     
-    def ls_tbl(self, user_input=None):
-        s = pd.Series(self.info()[['schema_name','tbl_name']].values.tolist())
-        s = s.apply('.'.join)
-        s = s.drop_duplicates().reset_index(drop=True)
-        ls =  self.info()['tbl_name'].drop_duplicates().tolist()
-        if user_input is None:
-            try:
-                user_input = int(input('Return (1) ls (2) pd.s (3) or both? >> '))
-            except ValueError: #return s if user_input error
-                return s
-        #if user_input is sucessful
-        if user_input == 1:
-            return ls
-        elif user_input == 3:
-            return s, ls
-        else:
-            return s
+    # def ls_tbl(self, user_input=None):
+    #     s = pd.Series(self.info()[['schema_name','tbl_name']].values.tolist())
+    #     s = s.apply('.'.join)
+    #     s = s.drop_duplicates().reset_index(drop=True)
+    #     ls =  self.info()['tbl_name'].drop_duplicates().tolist()
+    #     if user_input is None:
+    #         try:
+    #             user_input = int(input('Return (1) ls (2) pd.s (3) or both? >> '))
+    #         except ValueError: #return s if user_input error
+    #             return s
+    #     #if user_input is sucessful
+    #     if user_input == 1:
+    #         return ls
+    #     elif user_input == 3:
+    #         return s, ls
+    #     else:
+    #         return s
 
     def info(self, long_bool=False):
         if long_bool:
@@ -220,13 +248,16 @@ class SQLServer(SQL): # level 1
     def count(tbl_name):
         return pd.read_sql("SELECT COUNT(*) FROM {tbl_name}.")
     
-    def select(self, cols, tbl_name,
-         limit=10, # limit to top 10, set to None if want all
-         schema=None,
-         where=None,
-         order_by=None,
-         print_bool=True,
-         desc=False):
+    def select(self, 
+               tbl_name:str,
+               cols:Union[list, str]='*',
+               #cols, tbl_name,
+               schema:str=None,
+               print_bool:bool=True,
+               limit:int=10, # default to 10
+               where:str=None,
+               order_by:str=None,
+               desc:bool=False):
         """returns a pd.DataFrame"""
         # SELECT COLS
         col_names = self.select_cols(cols) 
@@ -243,12 +274,12 @@ class SQLServer(SQL): # level 1
             self.save_sql_hx(sql_statement)
             return pd.read_sql(sql_statement, self.conn)
 
-    def sql(self, sql_statement):
-        """For typing out whole generic SQL statements; no checks"""
-        pd.read_sql(sql_statement, self.conn)
+    # def sql(self, sql_statement):
+    #     """For typing out whole generic SQL statements; no checks"""
+    #     pd.read_sql(sql_statement, self.conn)
         
-    def insert(self, tbl_name, data_values, schema=None):
-        pass
+    # def insert(self, tbl_name, data_values, schema=None):
+    #     pass
     
     def insert_csv(self, tbl_name, csv_path):
         """inserts dataframe"""

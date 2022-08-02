@@ -46,7 +46,7 @@ class SQL: # level 0
     
     def _save_config(self, config):
         """obfuscates pw; saves config obj"""
-        config['world'] = 'hello'
+        #config['world'] = 'hello'
         self.config = config
     
     @staticmethod    
@@ -76,6 +76,17 @@ class SQL: # level 0
         cursor.execute(f"TRUNCATE TABLE {schema}.{table}")
         log.info("Table truncated, done!")
         conn.close()
+    
+    def drop(self, tbl_name:str, what:str='TABLE', skip_prompt=False, answer=None):
+        """For now this only drops tables, will expand in future to include sequences, etc."""
+        if skip_prompt:
+            answer = 'yes'
+        if tbl_name not in self.tables(silent=True):
+            print(f'Table {tbl_name} does not exist in the db. Nothing to drop.')
+        else:
+            sql_statement = f'DROP {what} {self.schema_name}.{tbl_name}'
+            if p.prompt_confirmation(msg=f'Are you sure your want to drop {tbl_name}?', answer=answer):
+                self.read_sql(sql_statement)
     
     @staticmethod
     def merge_frames(frames:list, on:str=None):
