@@ -4,6 +4,7 @@ import sqlalchemy
 from getpass import getpass
 import pyodbc
 import pandas as pd
+from typing import Union
 
 from SQLWrapper.base import SQL
 from SQLWrapper.config import PATH_TO_CONFIG, CONFIG_FILE
