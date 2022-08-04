@@ -111,8 +111,6 @@ class SQLServer(SQL): # level 1
         self.engine.dispose()
         self.engine = None
         config = self.config
-        print(config['hello'])
-        print(config['world'])
         self.conn_string = (f"DRIVER={config['DRIVER']};" \
                                f"SERVER={config['SERVER']};" \
                                f"DATABASE={self.db_name};" \
