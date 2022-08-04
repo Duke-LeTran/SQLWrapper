@@ -17,6 +17,7 @@ export PYTHONPATH="~/path_to_pythonpath/SQLWrapper:$PYTHONPATH"
 ```
 
 Set up your config files and ensure that the files are permissions protected.
+To change from default, edit file `SQLWrapper/config.py`
 
 ```bash
 cp -r config ~/.mypylib
@@ -61,27 +62,27 @@ from sqlalchemy.dialects.oracle import NUMBER, VARCHAR2, DATE
 # Initalize the database conneciton object
 db =  SQLWrapper.Oracle('ORACLE_DB_ENTRY')
 # note that the limit parameter is database agnostic
-df = db.select('*', 'TBL_NAME', limit=10) # returns a pandas df
+df_upload = db.select('TBL_NAME', limit=None) # returns a pandas df
 db.read_sql("SELECT COUNT('*') FROM SCHEMA.TBL_NAME") # similar to pd.read_sql()
 
-# defining
-oracle_dtypes = {
-            'col_integer' : NUMBER(38,0),
-            'col_string' : VARCHAR2(50),
-            'col_date' : DATE()
-}
+# generates a sqlalchemy engine, based on your config file
+pd.read_sql('SELECT * FROM TBL_NAME', db.engine)
 
-# uploading df to Oracle database
-df_upload.to_sql(
-    "table_name", 
-    db.engine, 
-    schema="schema_name", 
-    if_exists='replace', 
-    index=False,
-    dtype=oracle_dtypes # dictionary of SQLAlchemy DataTypes
-)
+# db-agnostic, returns list of all tables of connected database
+db.tables()
+
+# columns - returns pandas index of columns
+db.columns('TBL_NAME')
+
+# uploading df to Oracle database (create table first)
+db.to_oracle(df_upload, db.schema_name, 'TBL_NAME', db.engine)
+
 # if you need a cx_Oracle connection
 conn = db.engine.raw_connection()
+conn.close()
+
+# switch database, disposes engine, updates engine, updates object's variables
+db.use_db('COVID_LDS_DLETRAN')
 
 ```
 
