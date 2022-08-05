@@ -37,7 +37,7 @@ class SQL: # level 0
         self.schema_name= schema_name
         self.prefix = db_name + '.' + schema_name
         # self.msg_inaction = "No action taken. Remember to rollback or commit."
-        self.sqlHx = pd.Series()
+        self.sqlHx = pd.Series(dtype='object')
         self.p = Prompter()
 
     # def _generate_cursor(self):
@@ -81,7 +81,7 @@ class SQL: # level 0
         """For now this only drops tables, will expand in future to include sequences, etc."""
         if skip_prompt:
             answer = 'yes'
-        if tbl_name not in self.tables(silent=True):
+        if tbl_name not in self.tables():
             print(f'Table {tbl_name} does not exist in the db. Nothing to drop.')
         else:
             sql_statement = f'DROP {what} {self.schema_name}.{tbl_name}'

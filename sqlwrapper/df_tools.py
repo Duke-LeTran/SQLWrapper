@@ -1,4 +1,5 @@
 import pandas as pd
+import warnings
 from sqlalchemy.dialects.oracle import NUMBER, VARCHAR2, DATE
 #from typing import Union
 
@@ -29,6 +30,7 @@ def max_len_cols_oracle(df_input:pd.DataFrame, factor=1) -> dict:
     max_len = {}
     for col in df_input.columns:
         try:
+            warnings.filterwarnings("ignore")
             if df_input[col].dtype.name is 'bool':
                 max_len[col] = NUMBER(1,0)
             else:
@@ -39,6 +41,7 @@ def max_len_cols_oracle(df_input:pd.DataFrame, factor=1) -> dict:
             print(error)
             print(col)
     #  setting datatypes
+    warnings.filterwarnings("default")
     result_dict = {}
     for col, dtype in max_len.items():
         try:
