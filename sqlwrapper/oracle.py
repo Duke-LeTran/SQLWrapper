@@ -5,11 +5,13 @@ import numpy as np
 
 import cx_Oracle
 from cx_Oracle import InterfaceError
-from SQLWrapper import db_menu, PATH_TO_CONFIG, CONFIG_FILE
+from SQLWrapper import db_menu, PATH_TO_CONFIG, CONFIG_FILE, Prompter
 from SQLWrapper.base import SQL
 from typing import Union
 
 log = logging.getLogger(__name__)
+
+p = Prompter()
 
 class Oracle(SQL): # level 1
     """
@@ -84,12 +86,15 @@ class Oracle(SQL): # level 1
         except sqlalchemy.exc.DatabaseError as error:
             print(error)
     
-    # def tables(self, silent=False) -> list:
-    #     """returns all table names in connected database (of this schema;user)"""
-    #     df_t = self.read_sql('SELECT table_name \
-    #                           FROM user_tables \
-    #                           ORDER BY table_name', silent=silent)
-    #     return df_t['table_name'].tolist()
+    def tables(self, silent=True) -> list:
+        """
+        * returns all table names in connected database (of this schema;user)
+        * note, this version does not cache 
+        """
+        df_t = self.read_sql('SELECT table_name \
+                              FROM user_tables \
+                              ORDER BY table_name', silent=silent)
+        return df_t['table_name'].tolist()
     
     # def tables2(self) -> list:
     #     """returns all table names in connected database (of this schema;user)"""
@@ -121,8 +126,8 @@ class Oracle(SQL): # level 1
 
     def scope(self):
         print('[Current Scope]\n',
-              'Server:', self.config['hostname'].split('.')[0], "#aka hostname", '\n',
-              'Database:', self.config['service_name'].split('.')[0], '\n', 
+              'Server:', self._config['hostname'].split('.')[0], "#aka hostname", '\n',
+              'Database:', self._config['service_name'].split('.')[0], '\n', 
               'Schema/User:', self.schema_name, '\n')
     
     def version(self):
@@ -142,7 +147,7 @@ class Oracle(SQL): # level 1
         print(msg)
         
     @staticmethod
-    def limit(sql_statement, limit):
+    def _limit(sql_statement, limit):
         if type(limit) is int: # if SELECT TOP is defined correctly as int
             sql_statement = (f"SELECT * FROM ({sql_statement}) " \
                              f"WHERE ROWNUM <= {str(limit)}")
@@ -165,20 +170,20 @@ class Oracle(SQL): # level 1
         limit: limit number of rows
         """
         #SELECT
-        col_names = self.select_cols(cols) 
+        col_names = self._select_cols(cols) 
         # SCHEMA
-        prefix = self.check_schema(schema, self.schema_name)
+        prefix = self._get_schema(schema, self.schema_name)
         # SQL SKELETON
         sql_statement = f"SELECT {col_names} FROM {prefix}.{tbl_name.lower()}"
         # WHERE
-        sql_statement = self.where(sql_statement, where)
-        # ORDER BY
-        sql_statement = self.order_by(sql_statement, cols, order_by, desc)
+        sql_statement = self._where(sql_statement, where)
+        # ORDER BYselect_cols
+        sql_statement = self._order_by(sql_statement, cols, order_by, desc)
         # LIMIT
-        sql_statement = self.limit(sql_statement, limit)
+        sql_statement = self._limit(sql_statement, limit)
         # LOG
         if print_bool:
-            self.save_sql_hx(sql_statement + ';')
+            self._save_sql_hx(sql_statement + ';')
         df_output = pd.read_sql(sql_statement, con=self.engine)
         # convert names to capital for consistency
         df_output.columns = [x.upper() for x in df_output.columns]
@@ -188,12 +193,12 @@ class Oracle(SQL): # level 1
         """For now this only drops tables, will expand in future to include sequences, etc."""
         if skip_prompt:
             answer = 'yes'
-        if tbl_name not in self.tables(silent=True):
-            print(f'Table {tbl_name} does not exist in the db. Nothing to drop.')
-        else:
-            sql_statement = f'DROP {what} {self.schema_name}.{tbl_name}'
-            if p.prompt_confirmation(msg=f'Are you sure your want to drop {tbl_name}?', answer=answer):
-                self.read_sql(sql_statement)
+        #if tbl_name not in self.tables():
+        #    print(f'Table {tbl_name} does not exist in the db. Nothing to drop.')
+        #else:
+        sql_statement = f'DROP {what} {self.schema_name}.{tbl_name}'
+        if p.prompt_confirmation(msg=f'Are you sure your want to drop {tbl_name}?', answer=answer):
+            self.read_sql(sql_statement)
     
     def insert(self):
         """use to_oracle instead"""

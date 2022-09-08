@@ -54,6 +54,7 @@ DATABASE = NameOfDatabase
 
 # Sample use
 
+## Connect
 ```python
 import pandas as pd
 import numpy as np
@@ -63,21 +64,43 @@ from sqlalchemy.dialects.oracle import NUMBER, VARCHAR2, DATE
 # Initalize the database conneciton object
 db =  SQLWrapper.Oracle('ORACLE_DB_ENTRY')
 # note that the limit parameter is database agnostic
+```
+
+## Select
+```python
 df_upload = db.select('TBL_NAME', limit=None) # returns a pandas df
 db.read_sql("SELECT COUNT('*') FROM SCHEMA.TBL_NAME") # similar to pd.read_sql()
 
 # generates a sqlalchemy engine, based on your config file
 pd.read_sql('SELECT * FROM TBL_NAME', db.engine)
+```
 
+## Database inspection: Tables
+```python
 # db-agnostic, returns list of all tables of connected database
 db.tables()
 
+```
+
+## Database inspection: Columns
+```python
 # columns - returns pandas index of columns
 db.columns('TBL_NAME')
+# columns - verbose flag
+db.columns('TBL_NAME', verbose=True)
+```
 
+## Insert
+
+### Oracle
+```python
 # uploading df to Oracle database (create table first)
 db.to_oracle(df_upload, db.schema_name, 'TBL_NAME', db.engine)
+```
 
+
+## Other
+```python
 # if you need a cx_Oracle connection
 conn = db.engine.raw_connection()
 conn.close()

@@ -110,7 +110,7 @@ class SQLServer(SQL): # level 1
     def _reconnect(self):
         self.engine.dispose()
         self.engine = None
-        config = self.config
+        config = self._config
         self.conn_string = (f"DRIVER={config['DRIVER']};" \
                                f"SERVER={config['SERVER']};" \
                                f"DATABASE={self.db_name};" \
@@ -237,7 +237,7 @@ class SQLServer(SQL): # level 1
               'Schema:', self.schema_name, '\n')
 
     @staticmethod
-    def limit(col_names, limit, prefix, tbl_name):
+    def _limit(col_names, limit, prefix, tbl_name):
         if type(limit) is int: # LIMIT # if SELECT TOP is defined correctly as int
             sql_statement = f"SELECT TOP ({limit}) {col_names} FROM {prefix}.{tbl_name}"
         else: # else select all
@@ -259,18 +259,18 @@ class SQLServer(SQL): # level 1
                desc:bool=False):
         """returns a pd.DataFrame"""
         # SELECT COLS
-        col_names = self.select_cols(cols) 
+        col_names = self._select_cols(cols) 
         # SCHEMA
-        prefix = self.check_schema(schema, self.schema_name)
+        prefix = self._get_schema(schema, self.schema_name)
         # LIMIT - select TOP goes in front in SQLServer, hence the 
-        sql_statement = self.limit(col_names, limit, prefix, tbl_name)
+        sql_statement = self._limit(col_names, limit, prefix, tbl_name)
         # WHERE
-        sql_statement = self.where(sql_statement, where)
+        sql_statement = self._where(sql_statement, where)
         # ORDER BY
-        sql_statement = self.order_by(sql_statement, cols, order_by, desc)
+        sql_statement = self._order_by(sql_statement, cols, order_by, desc)
         # LOG
         if print_bool:
-            self.save_sql_hx(sql_statement)
+            self._save_sql_hx(sql_statement)
             return pd.read_sql(sql_statement, self.conn)
 
     # def sql(self, sql_statement):

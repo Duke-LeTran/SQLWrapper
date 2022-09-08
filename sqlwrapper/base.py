@@ -47,7 +47,7 @@ class SQL: # level 0
     def _save_config(self, config):
         """obfuscates pw; saves config obj"""
         #config['world'] = 'hello'
-        self.config = config
+        self._config = config
     
     @staticmethod    
     def config():
@@ -119,7 +119,7 @@ class SQL: # level 0
     
     def read_sql(self, sql_statement, silent=False):
         """ Imitation of the pandas read_sql"""
-        sql = self.readify_sql(sql_statement)
+        sql = self._readify_sql(sql_statement)
         if not silent:
             print(sql)
         try:
@@ -132,10 +132,10 @@ class SQL: # level 0
     #     return self.schema_name
     
     @staticmethod
-    def readify_sql(sql_input):
+    def _readify_sql(sql_input):
         return (' ').join(sql_input.replace('\n','').split())
         
-    def save_sql_hx(self, sql_statement):
+    def _save_sql_hx(self, sql_statement):
         sql_statement = ' '.join(sql_statement.split()) #remove extra whitespace
         print(sql_statement)
         self.sqlHx = self.sqlHx.append(pd.Series(sql_statement), ignore_index=True)
@@ -144,7 +144,7 @@ class SQL: # level 0
         self.__del__()
     
     @staticmethod
-    def select_cols(cols):
+    def _select_cols(cols):
         if type(cols) is list: # if list is provided
             if len (cols) > 0:
                 col_names = ", ".join(cols)
@@ -155,7 +155,8 @@ class SQL: # level 0
             return cols
     
     @staticmethod
-    def check_schema(schema, schema_default):
+    def _get_schema(schema, schema_default):
+        """ check if schema is defined, else use default"""
         if schema is not None: #if schema is defined
             prefix = f'{schema}'
         else: # else use default
@@ -163,13 +164,13 @@ class SQL: # level 0
         return prefix
     
     @staticmethod
-    def where(sql_statement, where):
+    def _where(sql_statement, where):
         if where:
             sql_statement = f"{sql_statement} WHERE {where}"
         return sql_statement  
     
     @staticmethod
-    def order_by(sql_statement:str, cols:list, order_by:str, desc:bool):
+    def _order_by(sql_statement:str, cols:list, order_by:str, desc:bool):
         if order_by:
             sql_statement = f"{sql_statement} ORDER BY {order_by}"
         if desc:
@@ -178,7 +179,7 @@ class SQL: # level 0
                 
     def tables(self):
         try:
-            return sorted(self.inspector.get_table_names())
+            return [x.upper() for x in sorted(self.inspector.get_table_names())]
         except Exception as error:
             log.error(error)
     
