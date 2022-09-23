@@ -40,8 +40,9 @@ class SQL: # level 0
         self.sqlHx = pd.Series(dtype='object')
         self.p = Prompter()
 
-    # def _generate_cursor(self):
-    #     self.cursor = self.conn.cursor()
+    def _generate_inspector(self):
+        from sqlalchemy import inspect
+        self.inspector = inspect(self.engine)
     
     
     def _save_config(self, config):
@@ -127,6 +128,15 @@ class SQL: # level 0
         except exc.ResourceClosedError as error:
             pass # if no rows returned
 
+    def tables(self):
+        try:
+            return [x.upper() for x in sorted(self.inspector.get_table_names())]
+        except Exception as error:
+            log.error(error)
+
+    def schemas(self):
+        return self.inspector.get_schema_names()
+
     # @property
     # def schema(self):
     #     return self.schema_name
@@ -177,11 +187,7 @@ class SQL: # level 0
             sql_statement = f"{sql_statement} DESC"
         return sql_statement
                 
-    def tables(self):
-        try:
-            return [x.upper() for x in sorted(self.inspector.get_table_names())]
-        except Exception as error:
-            log.error(error)
+    
     
     def __del__(self):
         from cx_Oracle import OperationalError
