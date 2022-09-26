@@ -93,6 +93,16 @@ class Oracle(SQL): # level 1
                               FROM user_tables \
                               ORDER BY table_name', silent=silent)
         return df_t['table_name'].tolist()
+
+    def views(self, silent=True) -> list:
+        """
+        * returns all views names in connected database (of this schema;user)
+        * note, this version does not cache 
+        """
+        df_v = self.read_sql('SELECT view_name \
+                              FROM user_views \
+                              ORDER BY table_name', silent=silent)
+        return df_v['view_name'].tolist()
     
     def ls_schemas(self):
         sql_statement = (f'SELECT username AS schema_name ' \

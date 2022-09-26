@@ -1,5 +1,6 @@
 # dist/
 __pycache__*
+.venv/*
 db_config.ini
 *.egg-info
 *.log
@@ -8,4 +9,3 @@ db_config.ini
 *.csv
 *.xlsx
 *.swp
-
