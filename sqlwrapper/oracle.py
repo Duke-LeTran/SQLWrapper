@@ -208,9 +208,9 @@ class Oracle(SQL): # level 1
         if p.prompt_confirmation(msg=f'Are you sure your want to drop {tbl_name}?', answer=answer):
             self.read_sql(sql_statement)
     
-    def insert(self):
-        """use to_oracle instead"""
-        pass
+    # def insert(self):
+    #     """use to_oracle instead"""
+    #     pass
     
     def _fix_data(self, df_input:pd.DataFrame):
         """
@@ -267,7 +267,8 @@ class Oracle(SQL): # level 1
         cursor = conn.cursor()
         return conn, cursor
 
-    def to_oracle(self, df_input, table, schema=None, engine=None, cap_cols=False):
+    #def to_oracle(self, df_input, table, schema=None, engine=None, cap_cols=False):
+    def insert(self, df_input, table, schema=None, engine=None, cap_cols=False):
         """
         Utilizes cx_oracle's executemany() method, which is much faster
         Credit to Bill Riedl's function, see repository:
