@@ -2,11 +2,13 @@
 
 This is a very robust python-SQL database wrapper designed to centralize your
 database connections into a single object. It provides pandas-like syntax, and 
-it aims to abstract the complicated formatting of DSN connection strings to be 
-database agnostic. The Oracle and SQLServer implementations are the most robust;
-additional database connections exist but may require further development.
+an object-oriented experience where all common functions are aggregated into
+a single `db` object. This library aims to abstract the complicated formatting 
+of DSN connection strings to be database agnostic. The Oracle and SQLServer 
+implementations are the most robust;additional database connections exist 
+but may require further development.
 
-# Setup
+# 00. Setup
 ```bash
 git clone git@github.com:Duke-LeTran/SQLWrapper.git ~/path_to_pythonpath/SQLWrapper
 ```
@@ -28,7 +30,7 @@ chmod 600 ~/.mypylib/*
 
 Now you should be able to import SQLWrapper from anywhere.
         
-# Sample setup of config file 
+# 01. Sample setup of config file 
 This is your config file. Entries will need to be edited to reflect your 
 personal databases. See a few example entries below. My prefered location to 
 place this file is: `$HOME/.mypylib/db_config.ini`
@@ -52,9 +54,9 @@ DATABASE = NameOfDatabase
 ```
 
 
-# Sample use
+# 02. Tutorial
 
-## Connect
+## A. Connect
 ```python
 import pandas as pd
 import numpy as np
@@ -65,23 +67,24 @@ from sqlalchemy.dialects.oracle import NUMBER, VARCHAR2, DATE
 db =  SQLWrapper.Oracle('ORACLE_DB_ENTRY')
 # note that the limit parameter is database agnostic
 
-# sqlalchemy engine available
+# sqlalchemy engine available within object
 pd.read_sql('SELECT * FROM TBL_NAME', db.engine)
 ```
 
 # I. DQL
-## Select
+## A. Select
 ```python
 df_upload = db.select('TBL_NAME', limit=None, where='WHERE x = y') # returns a pandas df
 ```
 
-## Database inspection: Tables
+## B. Database inspection: Tables
 ```python
 # db-agnostic, returns list of all tables of connected database
 db.tables()
 
 ```
 
+## C. Database inspection: Views
 ```python
 # db-agnostic, returns list of all views of connected database
 db.views()
@@ -96,18 +99,15 @@ db.columns('TBL_NAME')
 db.columns('TBL_NAME', verbose=True)
 ```
 
-## Pandas' pd.read_sql() directly available
-
 # II. DML
-## Insert
-
-### Oracle
+## A .Insert
 ```python
 # uploading df to Oracle database (create table first)
+# db.to_oracle(df_upload, 'TBL_NAME') - this is now deprecated
 db.insert(df_upload, 'TBL_NAME')
 ```
 
-## Update
+## B. Update
 
 Using a for loop, this function can help automate writing the `UPDATE` statements.
 
@@ -116,18 +116,21 @@ for idx, row in df.iterrows():
     #db.update('tbl_name', 'set_col', 'set_val', 'cond_col', 'condition')
     db.update('MAPPED_TITLE', 'TM_COHORT', f"'{row['TM_COHORT']}'",'TITLECODE', f"'{str(row['TITLECODE']).rjust(6,'0')}'", autocommit=True)
 ```
-## Truncate
+## C. Truncate
 ```python
 # uploading df to Oracle database (create table first)
 db.truncate('API_TABLE', answer='yes')
 ```
 
-## Drop
+## D. Drop
 ```python
 # uploading df to Oracle database (create table first)
 db.drop('API_TABLE', answer='yes')
+```
 
-## Other
+# III. Other tools
+
+## A. Generate lower level cx_Oracle connections
 ```python
 # if you need a cx_Oracle connection
 conn, cursor = db._generate_conn_cursor()
@@ -140,14 +143,18 @@ except Exception as e:
 finally:
     conn.close()
     cursor.close()
+```
 
+## B. Switch between schemas
 
-# switch database, disposes engine, updates engine, updates object's variables
+Switch database, disposes engine, updates engine, updates object's variables
+
+```python
 db.use_db('COVID_LDS_DLETRAN')
 
 ```
 
-# Notes on Oracle Databases
+# IV. Notes on Oracle Databases
 
 You must ensure that all your Oracle drivers are setup properly. Refer to these
 confluence guides as necessary:
