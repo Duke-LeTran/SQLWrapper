@@ -104,7 +104,7 @@ finally:
     cursor.close()
 ```
 
-# II. DQL
+# 03. DQL
 ## A. Select
 ```python
 df_upload = db.select('TBL_NAME', limit=None, where='WHERE x = y') # returns a pandas df
@@ -133,7 +133,7 @@ db.columns('TBL_NAME', verbose=True)
 ```
 
 # III. DML
-## A .Insert
+## A. Insert
 ```python
 # uploading df to Oracle database (create table first)
 # db.to_oracle(df_upload, 'TBL_NAME') - this is now deprecated
@@ -161,13 +161,13 @@ for idx, row in df.iterrows():
 ```
 ## C. Truncate
 ```python
-# uploading df to Oracle database (create table first)
+# quickly trucnate a table of data
 db.truncate('API_TABLE', answer='yes')
 ```
 
 ## D. Drop
 ```python
-# uploading df to Oracle database (create table first)
+# drop a table using the db object
 db.drop('API_TABLE', answer='yes')
 ```
 

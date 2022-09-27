@@ -84,15 +84,15 @@ class Oracle(SQL): # level 1
         except sqlalchemy.exc.DatabaseError as error:
             print(error)
     
-    def describe(self) -> pd.DataFrame:
-        result = {}
-        for tbl in self.tables():
-            result[tbl] = (list(self.columns(tbl, verbose=True)),
-                self.inspector.get_pk_constraint(tbl),
-                self.inspector.get_foreign_keys(tbl))
-        df_result = pd.DataFrame(result).T
-        df_result.columns = ['columns', 'primary_key', 'foreign_keys']
-        return df_result
+    # def describe(self) -> pd.DataFrame:
+    #     result = {}
+    #     for tbl in self.tables():
+    #         result[tbl] = (list(self.columns(tbl, verbose=True)),
+    #             self.inspector.get_pk_constraint(tbl),
+    #             self.inspector.get_foreign_keys(tbl))
+    #     df_result = pd.DataFrame(result).T
+    #     df_result.columns = ['columns', 'primary_key', 'foreign_keys']
+    #     return df_result
 
     def tables(self, silent=True) -> list:
         """
@@ -126,7 +126,7 @@ class Oracle(SQL): # level 1
     def columns(self,
                 tbl_name:str,
                 verbose=False,
-                return_dtype=False) -> pd.core.indexes.base.Index:
+                return_dtype=False) -> Union[pd.core.indexes.base.Index, list]:
         if verbose:
             return self.inspector.get_columns(tbl_name.lower(), dialect_options='oracle')
         elif return_dtype:
