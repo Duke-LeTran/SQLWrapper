@@ -56,7 +56,7 @@ DATABASE = NameOfDatabase
 
 # 02. Tutorial
 
-## A. Connect
+## A. Connect and initialize
 ```python
 import pandas as pd
 import numpy as np
@@ -66,12 +66,45 @@ from sqlalchemy.dialects.oracle import NUMBER, VARCHAR2, DATE
 # Initalize the database conneciton object
 db =  SQLWrapper.Oracle('ORACLE_DB_ENTRY')
 # note that the limit parameter is database agnostic
+```
 
+## B. Common SQLAlchemy objects
+
+If you are familiar with SQLAlchemy, a couple of objects are generated as part 
+of the `db` object for convenience. This way, if you're already familiar with
+that framework, this something you may want to use.
+
+### Engine
+```python
 # sqlalchemy engine available within object
 pd.read_sql('SELECT * FROM TBL_NAME', db.engine)
 ```
 
-# I. DQL
+### Inspector
+
+For more information on the inspector, see [here](https://docs.sqlalchemy.org/en/14/core/reflection.html#fine-grained-reflection-with-inspector).
+```python
+db.inspector.get_pk_constraint('TBL_NAME')
+db.inspector.get_columns('TBL_NAME')
+db.inspector.get_pk_constraint('TBL_NAME')
+```
+
+### cx_Oracle connections and cursors
+```python
+# if you need a cx_Oracle connection
+conn, cursor = db._generate_conn_cursor()
+
+try:
+    cursor.execute('')
+    conn.commit()
+except Exception as e:
+    log.error(e)
+finally:
+    conn.close()
+    cursor.close()
+```
+
+# II. DQL
 ## A. Select
 ```python
 df_upload = db.select('TBL_NAME', limit=None, where='WHERE x = y') # returns a pandas df
@@ -99,7 +132,7 @@ db.columns('TBL_NAME')
 db.columns('TBL_NAME', verbose=True)
 ```
 
-# II. DML
+# III. DML
 ## A .Insert
 ```python
 # uploading df to Oracle database (create table first)
@@ -114,7 +147,17 @@ Using a for loop, this function can help automate writing the `UPDATE` statement
 ```python
 for idx, row in df.iterrows():
     #db.update('tbl_name', 'set_col', 'set_val', 'cond_col', 'condition')
-    db.update('MAPPED_TITLE', 'TM_COHORT', f"'{row['TM_COHORT']}'",'TITLECODE', f"'{str(row['TITLECODE']).rjust(6,'0')}'", autocommit=True)
+    db.update('MAPPED_TITLE', #tbl_name
+                'TM_COHORT', #set_col
+                f"'{row['TM_COHORT']}'", #set_value
+                'TITLECODE', #conditional_column
+                f"'{str(row['TITLECODE']).rjust(6,'0')}'", #condition
+                autocommit=True)
+
+    # This will print and execute the following code:
+    ## UPDATE MAPPED_TITLE 
+    ## SET TM_COHORT = {set_value} 
+    ## WHERE TITLECODE = '000136';
 ```
 ## C. Truncate
 ```python
@@ -128,24 +171,11 @@ db.truncate('API_TABLE', answer='yes')
 db.drop('API_TABLE', answer='yes')
 ```
 
-# III. Other tools
+# IV. Other tools
 
-## A. Generate lower level cx_Oracle connections
-```python
-# if you need a cx_Oracle connection
-conn, cursor = db._generate_conn_cursor()
+This are miscellaneous functions that may also be useful
 
-try:
-    cursor.execute('')
-    conn.commit()
-except Exception as e:
-    log.error(e)
-finally:
-    conn.close()
-    cursor.close()
-```
-
-## B. Switch between schemas
+## A. Switch between schemas
 
 Switch database, disposes engine, updates engine, updates object's variables
 
@@ -154,7 +184,7 @@ db.use_db('COVID_LDS_DLETRAN')
 
 ```
 
-# IV. Notes on Oracle Databases
+# V. Notes on Oracle Databases
 
 You must ensure that all your Oracle drivers are setup properly. Refer to these
 confluence guides as necessary:

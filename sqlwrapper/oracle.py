@@ -84,6 +84,16 @@ class Oracle(SQL): # level 1
         except sqlalchemy.exc.DatabaseError as error:
             print(error)
     
+    def describe(self) -> pd.DataFrame:
+        result = {}
+        for tbl in self.tables():
+            result[tbl] = (list(self.columns(tbl, verbose=True)),
+                self.inspector.get_pk_constraint(tbl),
+                self.inspector.get_foreign_keys(tbl))
+        df_result = pd.DataFrame(result).T
+        df_result.columns = ['columns', 'primary_key', 'foreign_keys']
+        return df_result
+
     def tables(self, silent=True) -> list:
         """
         * returns all table names in connected database (of this schema;user)
@@ -101,7 +111,7 @@ class Oracle(SQL): # level 1
         """
         df_v = self.read_sql('SELECT view_name \
                               FROM user_views \
-                              ORDER BY table_name', silent=silent)
+                              ORDER BY view_name', silent=silent)
         return df_v['view_name'].tolist()
     
     def ls_schemas(self):
