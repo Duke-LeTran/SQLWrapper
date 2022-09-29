@@ -21,8 +21,8 @@ import os
 import pandas as pd
 from sqlalchemy import exc
 # SQLWrapper
-from SQLWrapper.config import PATH_TO_CONFIG, CONFIG_FILE
-from SQLWrapper.prompter import Prompter
+from sqlwrapper.config import PATH_TO_CONFIG, CONFIG_FILE
+from sqlwrapper.prompter import Prompter
 
 # logging
 log = logging.getLogger(__name__)

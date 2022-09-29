@@ -6,9 +6,9 @@ import pyodbc
 import pandas as pd
 from typing import Union
 
-from SQLWrapper.base import SQL
-from SQLWrapper.config import PATH_TO_CONFIG, CONFIG_FILE
-from SQLWrapper.dbmenu import db_menu
+from sqlwrapper.base import SQL
+from sqlwrapper.config import PATH_TO_CONFIG, CONFIG_FILE
+from sqlwrapper.dbmenu import db_menu
 
 # logging
 log = logging.getLogger(__name__)

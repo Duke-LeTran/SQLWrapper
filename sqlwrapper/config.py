@@ -19,8 +19,8 @@ import logging
 from pathlib import Path
 
 # SQLWrapper
-from SQLWrapper.dbmenu import db_menu
-from SQLWrapper.prompter import Prompter
+from sqlwrapper.dbmenu import db_menu
+from sqlwrapper.prompter import Prompter
 
 # logging
 log = logging.getLogger(__name__)

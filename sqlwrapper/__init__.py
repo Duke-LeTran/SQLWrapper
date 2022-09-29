@@ -1,5 +1,5 @@
 """
-SQLWrapper.py
+sqlwrapper.py
     |--> prompter.py
     
 DESCRIPTION: 
@@ -14,18 +14,15 @@ Duke LeTran <duke.letran@gmail.com; daletran@ucdavis.edu>
 Research Infrastructure, IT Health Informatics, UC Davis Health
 """
 #setup
-#from SQLWrapper.SQLWrapper import *
-from SQLWrapper.base import SQL
-from SQLWrapper.config import PATH_TO_CONFIG, CONFIG_FILE
-from SQLWrapper.dbmenu import db_menu
-from SQLWrapper.prompter import Prompter
-from SQLWrapper.df_tools import max_len_cols
-from SQLWrapper.xlsx import read_xlsx, sheet_to_df
+#from sqlwrapper.sqlwrapper import *
+from sqlwrapper.base import SQL
+from sqlwrapper.config import PATH_TO_CONFIG, CONFIG_FILE
+from sqlwrapper.dbmenu import db_menu
+from sqlwrapper.prompter import Prompter
+from sqlwrapper.df_tools import max_len_cols
+from sqlwrapper.xlsx import read_xlsx, sheet_to_df
 
 # database connections
-from SQLWrapper.oracle import Oracle
-from SQLWrapper.mariadb import MariaDB
-from SQLWrapper.sqlserver import SQLServer
-
-
-
+from sqlwrapper.oracle import Oracle
+from sqlwrapper.mariadb import MariaDB
+from sqlwrapper.sqlserver import SQLServer

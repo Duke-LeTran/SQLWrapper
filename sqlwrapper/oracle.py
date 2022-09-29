@@ -7,13 +7,21 @@ import numpy as np
 
 import cx_Oracle
 from cx_Oracle import InterfaceError
-from SQLWrapper import db_menu, PATH_TO_CONFIG, CONFIG_FILE, Prompter
-from SQLWrapper.base import SQL
+from sqlwrapper import db_menu, PATH_TO_CONFIG, CONFIG_FILE, Prompter
+from sqlwrapper.base import SQL
 from typing import Union
 
 log = logging.getLogger(__name__)
 
 p = Prompter()
+
+class Error(Exception):
+    """Base error class"""
+    pass
+
+class FailedInsertMissingTable(Error):
+    """Raised when attemps to insert pandas df but table is not defined"""
+    pass
 
 class Oracle(SQL): # level 1
     """
@@ -85,6 +93,7 @@ class Oracle(SQL): # level 1
             print(error)
     
     # def describe(self) -> pd.DataFrame:
+    # """ DEPRECREATED: Too slow"""
     #     result = {}
     #     for tbl in self.tables():
     #         result[tbl] = (list(self.columns(tbl, verbose=True)),
@@ -285,6 +294,9 @@ class Oracle(SQL): # level 1
             - gitlab/ucd-ri-pydbutils/PandasDBDataStreamer.py
         """
         from sqlalchemy.exc import DatabaseError
+
+        if not self.inspector.has_table(table):
+            raise FailedInsertMissingTable(f"Table doesn't exist in db")
 
         # SET DEFAULTS #########################################################
         if cap_cols:
