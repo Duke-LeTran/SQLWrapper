@@ -209,7 +209,11 @@ class MariaDB(SQL): # level 1
         ## generate sql statement
         sql = f'INSERT INTO {table.lower()} ({cols}) values ({bind_vars})'
 
+
         # F. EXECUTE SQL #######################################################
+        log.info('=======================================================')
+        log.info(f' pymysql EXECUTEMANY, INSERT INTO {table}')
+        log.info('=======================================================')
         try:
             conn = self.engine.raw_connection()
             with conn.cursor() as cur: # a good practice to follow
