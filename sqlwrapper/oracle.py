@@ -122,6 +122,30 @@ class Oracle(SQL): # level 1
                               FROM user_views \
                               ORDER BY view_name', silent=silent)
         return df_v['view_name'].tolist()
+
+    def truncate(self, table:str, schema:str=None, engine=None, answer=None):
+        """
+        You can use this to truncate other tables too, static method
+        """
+        # set defaults
+        if schema is None:
+            schema = self.schema_name
+        if engine is None:
+            engine = self.engine
+        
+        # prompt for confirmation
+        if not p.prompt_confirmation(answer=answer): # if user denies
+            print('Did not truncate, canceled by user.')
+
+        # create connection and truncate
+        conn = engine.raw_connection()
+        cursor = conn.cursor()
+        log.info("=======================================================")
+        log.info(f"TRUNCATE TABLE {schema}.{table}... ")
+        log.info("=======================================================")
+        cursor.execute(f"TRUNCATE TABLE {schema}.{table}")
+        log.info("Table truncated, done!")
+        conn.close()
     
     def ls_schemas(self):
         sql_statement = (f'SELECT username AS schema_name ' \
@@ -139,7 +163,8 @@ class Oracle(SQL): # level 1
         if verbose:
             return self.inspector.get_columns(tbl_name.lower(), dialect_options='oracle')
         elif return_dtype:
-            df_dtype = pd.DataFrame(self.inspector.get_columns(tbl_name, dialect_options='oracle'))
+            print("sqlalchemy docs: https://docs.sqlalchemy.org/en/14/dialects/oracle.html#oracle-data-types")
+            df_dtype = pd.DataFrame(self.inspector.get_columns(tbl_name.lower(), dialect_options='oracle'))
             return {k.upper():v for k,v in zip(df_dtype['name'], df_dtype['type'])}
         else:
             df_result = self.select(tbl_name, limit=1, print_bool=False)
@@ -227,10 +252,6 @@ class Oracle(SQL): # level 1
         if p.prompt_confirmation(msg=f'Are you sure your want to drop {tbl_name}?', answer=answer):
             self.read_sql(sql_statement)
     
-    # def insert(self):
-    #     """use to_oracle instead"""
-    #     pass
-    
     def _fix_data(self, df_input:pd.DataFrame):
         """
         * str: replace the actual string "None" with an empty string
@@ -309,13 +330,13 @@ class Oracle(SQL): # level 1
             schema = self.schema_name
 
         # A. GENERATE CONN AND CURSOR ##########################################
-        # conn = self.engine.raw_connection()
-        # cur = conn.cursor()
         conn, cursor = self._generate_conn_cursor()
 
         # B. GRAB COLS AS STRING ###############################################
         df_temp = self._fix_data(df_input.copy())
         cols = str(', '.join(df_temp.columns.tolist()))
+        ## if df has more cols than in the database, filter using this below:
+        cols_tbl = (', '.join(self.columns(table)))
 
         # C. CONVERT EACH VAL OF EACH ROW > STRING #############################
         func = lambda ls : [str(x) for x in ls]
