@@ -31,7 +31,8 @@ def max_len_cols_oracle(df_input:pd.DataFrame, factor=1) -> dict:
     for col in df_input.columns:
         try:
             warnings.filterwarnings("ignore")
-            if df_input[col].dtype.name is 'bool':
+            #if df_input[col].dtype.name is 'bool':
+            if df_input[col].dtype.name == 'bool':
                 max_len[col] = NUMBER(1,0)
             else:
                 max_len[col.upper()] = df_input[col].str.len().max()

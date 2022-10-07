@@ -207,13 +207,13 @@ class SQL: # level 0
         from cx_Oracle import OperationalError
         try:
             self.engine.dispose()
-            #self.cursor.close()
-            #self.conn.close()
         except AttributeError as error:
-            log.info(error)
+            log.error(error)
         except InterfaceError as error:
-            log.info(error)
+            log.error(error)
         except OperationalError as error:
-            log.info('db.engine likely idled and already closed, don\'t worry.')
-            log.info(error)
+            log.error('db.engine likely idled and already closed, don\'t worry.')
+            log.error(error)
+        except Exception as error:
+            log.warning(error)
 
