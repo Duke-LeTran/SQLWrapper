@@ -23,6 +23,7 @@ from sqlalchemy import exc
 # SQLWrapper
 from sqlwrapper.config import PATH_TO_CONFIG, CONFIG_FILE
 from sqlwrapper.prompter import Prompter
+from typing import Union
 
 # logging
 log = logging.getLogger(__name__)
@@ -51,8 +52,21 @@ class SQL: # level 0
         self._config = config
     
     @staticmethod    
-    def config():
+    def open_config():
         os.startfile(PATH_TO_CONFIG / CONFIG_FILE)
+
+    def columns(self,
+                tbl_name:str,
+                verbose=False,
+                return_dtype=False) -> Union[pd.core.indexes.base.Index, list]:
+        if verbose:
+            return self.inspector.get_columns(tbl_name.lower())
+        elif return_dtype:
+            df_dtype = pd.DataFrame(self.inspector.get_columns(tbl_name.lower()))
+            return {k.upper():v for k,v in zip(df_dtype['name'], df_dtype['type'])}
+        else:
+            df_result = self.select(tbl_name, limit=1, print_bool=False)
+            return df_result.columns
     
     def truncate(self, table:str, schema:str=None, engine=None, answer=None):
         """
