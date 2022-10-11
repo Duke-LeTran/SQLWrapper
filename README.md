@@ -134,6 +134,9 @@ db.columns('TBL_NAME', verbose=True)
 
 # III. DML
 ## A. Insert
+
+Note, table must already exist in database; db column names must match df's cols exactly.
+
 ```python
 # uploading df to Oracle database (create table first)
 # db.to_oracle(df_upload, 'TBL_NAME') - this is now deprecated
