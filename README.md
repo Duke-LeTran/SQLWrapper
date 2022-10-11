@@ -4,8 +4,8 @@ This is a very robust python-SQL database wrapper designed to centralize your
 database connections into a single object. It provides pandas-like syntax, and 
 an object-oriented experience where all common functions are aggregated into
 a single `db` object. This library aims to abstract the complicated formatting 
-of DSN connection strings to be database agnostic. The Oracle and SQLServer 
-implementations are the most robust;additional database connections exist 
+of DSN connection strings to be database agnostic. The Oracle, SQLServer, and MariaDB 
+implementations are the most robust; additional database connections exist 
 but may require further development.
 
 # 00. Setup
