@@ -1,4 +1,4 @@
-# SQLWrapper
+# sqlwrapper
 
 This is a very robust python-SQL database wrapper designed to centralize your
 database connections into a single object. It provides pandas-like syntax, and 
