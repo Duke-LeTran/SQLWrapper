@@ -284,23 +284,6 @@ class SQLServer(SQL): # level 1
             self._save_sql_hx(sql_statement)
             return pd.read_sql(sql_statement, self.engine)
 
-    def tables(self, verbose=False):
-        if verbose:
-            ls_cols = [
-                'schema_name(schema_id) schema_name', 
-                'name tbl_name',
-                'type', 
-                'type_desc', 
-                'create_date', 
-                'modify_date'
-            ]
-            sql_statement = f"select {', '.join(ls_cols)} "
-            sql_statement += "FROM sys.tables"
-            sql_statement += "ORDER BY name"
-        else:
-            sql_statement = "select name FROM sys.tables ORDER BY name"
-        return list(self.read_sql(sql_statement))
-
     def columns(self,
                 tbl_name:str,
                 verbose=False,
@@ -315,6 +298,26 @@ class SQLServer(SQL): # level 1
         else:
             df_result = self.select(tbl_name, limit=1, print_bool=False)
             return df_result.columns
+
+    def tables(self, verbose=False):
+        if verbose:
+            ls_cols = [
+                'schema_name(schema_id) schema_name', 
+                'name tbl_name',
+                'type', 
+                'type_desc', 
+                'create_date', 
+                'modify_date'
+            ]
+            sql_statement = f"select {', '.join(ls_cols)} "
+            sql_statement += "FROM sys.tables"
+            sql_statement += "ORDER BY name"
+            return self.read_sql(sql_statement)
+        else:
+            sql_statement = "select name FROM sys.tables ORDER BY name"
+            return list(self.read_sql(sql_statement))['name']
+
+
 
     def schemas(self, verbose=False) -> list:  
         """ returns a list of schemas, no verbose option """
@@ -335,20 +338,20 @@ class SQLServer(SQL): # level 1
         ls_exclude = [f"'{x}'" for x in ls_exclude] # add quotes around strings
         sql_statement = "SELECT name FROM sys.schemas "
         sql_statement += f"WHERE name not in "
-        sql_statement += f"({', '.join(ls_exclude)})"
+        sql_statement += f"({', '.join(ls_exclude)}) "
         sql_statement += "AND name not like 'HS\\%'"
         sql_statement += "ORDER BY name"
-        return list(self.read_sql(sql_statement))
+        return list(self.read_sql(sql_statement))['name']
 
 
-    def databases(self):
+    def databases(self, verbose=False):
         """returns a list of all databases"""
         ls_exclude = ['master','tempdb','model','msdb']
         ls_exclude = [f"'{x}'" for x in ls_exclude]
         sql_statement = "SELECT name FROM sys.databases "
         sql_statement += "WHERE name not in "
-        sql_statement += f"({', '.join(ls_exclude)})" 
-        return list(self.read_sql(sql_statement))
+        sql_statement += f"({', '.join(ls_exclude)}) " 
+        return list(self.read_sql(sql_statement))['name']
 
     def truncate(self, table:str,
                  database:str=None,
