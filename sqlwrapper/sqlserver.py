@@ -123,18 +123,22 @@ class SQLServer(SQL): # level 1
         self._generate_engine()
         self._generate_inspector()
 
-    def use(self, db_name=None):
+    def use(self, db_name=None, schema_name=None):
         """USE DATABASE <new-db-name>;"""
         if db_name is None:
             print(f'Already current db; no changes to db_name {self.db_name}')
             return
+
+        if schema_name is None:
+            schema_name = self.schema_name
+
         print(f'Current database: {self.prefix}')
         print(f'Change to database: {db_name}.{self.schema_name}')
         msg='Are you sure you want to change databases?'
         if self.p.prompt_confirmation(msg=msg):
             self._config['DATABASE'] = db_name
             self.db_name = db_name
-            self.prefix = db_name + '.' + self.schema_name
+            self.prefix = db_name + '.' + schema_name
             self._reconnect()
 
     def change_schema(self, schema_name=None):
