@@ -89,7 +89,7 @@ class SQLServer(SQL): # level 1
         self.url_conn_string = (f'mssql+pyodbc:///?odbc_connect=' \
                                          f'{self.encoded_url_string}')
         self.engine = sqlalchemy.create_engine(self.url_conn_string, 
-                                             fast_executemany=True))
+                                             fast_executemany=True)
 
     def _generate_inspector(self):
         from sqlalchemy import inspect
