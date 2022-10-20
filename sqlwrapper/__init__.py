@@ -15,7 +15,6 @@ Research Infrastructure, IT Health Informatics, UC Davis Health
 """
 #setup
 #from sqlwrapper.sqlwrapper import *
-from sqlwrapper.base import SQL
 from sqlwrapper.config import PATH_TO_CONFIG, CONFIG_FILE
 from sqlwrapper.dbmenu import db_menu
 from sqlwrapper.prompter import Prompter
@@ -23,6 +22,7 @@ from sqlwrapper.df_tools import max_len_cols
 from sqlwrapper.xlsx import read_xlsx, sheet_to_df
 
 # database connections
+from sqlwrapper.base import SQL
 from sqlwrapper.oracle import Oracle
 from sqlwrapper.mariadb import MariaDB
 from sqlwrapper.sqlserver import SQLServer
