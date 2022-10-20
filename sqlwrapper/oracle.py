@@ -23,6 +23,8 @@ class FailedInsertMissingTable(Error):
     """Raised when attemps to insert pandas df but table is not defined"""
     pass
 
+
+
 class Oracle(SQL): # level 1
     """
     Oracle Database Wrapper
@@ -372,16 +374,24 @@ class Oracle(SQL): # level 1
             return sql, lines[:10]
 
     def update(self,
-               tbl_name,
-               set_col,
-               set_val,
-               cond_col,
-               condition,
+               tbl_name:str,
+               set_col:str,
+               set_value,
+               cond_col:str,
+               cond_value,
                autocommit=False,
                silent=False):
         """provides a quick way to update and commit"""
         conn, cursor = self._generate_conn_cursor()
-        sql_statement = f"UPDATE {tbl_name.lower()} SET {set_col} = {set_val} WHERE {cond_col} = {condition}"
+        sql_statement = f"UPDATE {tbl_name.lower()} "
+        if type(set_value) == str: #if string, wrap as string
+            sql_statement += f"SET {set_col} = '{set_val}' "
+        else:
+            sql_statement += f"SET {set_col} = {set_val} "
+        if type(cond_val) == str: #if string, wrap as string
+            sql_statement += f"WHERE {cond_col} = '{cond_val}'"
+        else:
+            sql_statement += f"WHERE {cond_col} = {cond_val}"
         sql = self._readify_sql(sql_statement)
         if not silent:
             print(sql)
