@@ -111,7 +111,10 @@ class MariaDB(SQL): # level 1
         # ORDER BYselect_cols
         sql_statement = self._order_by(sql_statement, cols, order_by, desc)
         # LIMIT
-        sql_statement = self._limit(sql_statement, limit)
+        if limit == None:
+            pass
+        else:
+            sql_statement = self._limit(sql_statement, limit)
         # LOG
         if print_bool:
             self._save_sql_hx(sql_statement + ';')
