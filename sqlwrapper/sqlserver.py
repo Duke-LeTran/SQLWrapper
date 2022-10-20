@@ -95,6 +95,10 @@ class SQLServer(SQL): # level 1
         from sqlalchemy import inspect
         self.inspector = inspect(self.engine)
 
+    def _flush(self):
+        self.inspector=None
+        self.engine=None
+
     def _connect(self, config):
         if config['world'] is None:
             config['world']=getpass()
@@ -111,14 +115,15 @@ class SQLServer(SQL): # level 1
         config = self._config
         self.conn_string = (f"DRIVER={config['DRIVER']};" \
                                f"SERVER={config['SERVER']};" \
-                               f"DATABASE={self.db_name};" \
+                               f"DATABASE={config['DATABASE']};" \
                                f"UID={config['hello']};" \
                                f"PWD={config['world']}")
         self.encoded_url_string = urllib.parse.quote_plus(self.conn_string)
+        self._flush()
         self._generate_engine()
         self._generate_inspector()
 
-    def use_db(self, db_name=None):
+    def use(self, db_name=None):
         """USE DATABASE <new-db-name>;"""
         if db_name is None:
             print(f'Already current db; no changes to db_name {self.db_name}')
@@ -127,8 +132,23 @@ class SQLServer(SQL): # level 1
         print(f'Change to database: {db_name}.{self.schema_name}')
         msg='Are you sure you want to change databases?'
         if self.p.prompt_confirmation(msg=msg):
+            self._config['DATABASE'] = db_name
             self.db_name = db_name
             self.prefix = db_name + '.' + self.schema_name
+            self._reconnect()
+
+    def change_schema(self, schema_name=None):
+        """USE DATABASE <new-db-name>;"""
+        if schema_name is None:
+            print(f'Already current db; no changes to schema_name {self.schema_name}')
+            return
+        print(f'Current database: {self.prefix}')
+        print(f'Change to database: {self.db_name}.{schema_name}')
+        msg='Are you sure you want to change databases?'
+        if self.p.prompt_confirmation(msg=msg):
+            #self._config['DATABASE'] = schema_name
+            self.schema_name = schema_name
+            self.prefix = self.db_name + '.' + schema_name
             self._reconnect()
     
 
@@ -172,36 +192,6 @@ class SQLServer(SQL): # level 1
     #             x = 'replace'
     #     df_input.to_sql(tbl_name, self.engine, if_exists=x)
     #     self._generate_dbinfo #update info
-        
-    def ls_schema(self):
-        sql_statement = (f"SELECT s.schema_id," \
-                         f"    s.name as schema_name," \
-                         f"    u.name as schema_owner " \
-                         f"FROM " \
-                         f"    SYS.SCHEMAS s " \
-                         f"INNER JOIN" \
-                         f"    SYS.SYSUSERS u " \
-                         f"ON u.uid = s.principal_id " \
-                         f"ORDER BY s.name;")
-        return pd.read_sql(sql_statement, self.engine)
-    
-    # def ls_tbl(self, user_input=None):
-    #     s = pd.Series(self.info()[['schema_name','tbl_name']].values.tolist())
-    #     s = s.apply('.'.join)
-    #     s = s.drop_duplicates().reset_index(drop=True)
-    #     ls =  self.info()['tbl_name'].drop_duplicates().tolist()
-    #     if user_input is None:
-    #         try:
-    #             user_input = int(input('Return (1) ls (2) pd.s (3) or both? >> '))
-    #         except ValueError: #return s if user_input error
-    #             return s
-    #     #if user_input is sucessful
-    #     if user_input == 1:
-    #         return ls
-    #     elif user_input == 3:
-    #         return s, ls
-    #     else:
-    #         return s
 
     def info(self, long_bool=False):
         if long_bool:
