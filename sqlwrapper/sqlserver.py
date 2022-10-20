@@ -138,7 +138,7 @@ class SQLServer(SQL): # level 1
             self._reconnect()
 
     def change_schema(self, schema_name=None):
-        """USE DATABASE <new-db-name>;"""
+        """ALTER SCHEMA <new-schema-name>;"""
         if schema_name is None:
             print(f'Already current db; no changes to schema_name {self.schema_name}')
             return
@@ -149,7 +149,7 @@ class SQLServer(SQL): # level 1
             #self._config['DATABASE'] = schema_name
             self.schema_name = schema_name
             self.prefix = self.db_name + '.' + schema_name
-            self._reconnect()
+            #self._reconnect() # you don't need to reconnect
     
 
     def _generate_dbinfo(self):
