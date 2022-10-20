@@ -313,7 +313,7 @@ class SQLServer(SQL): # level 1
                 'modify_date'
             ]
             sql_statement = f"select {', '.join(ls_cols)} "
-            sql_statement += "FROM sys.tables"
+            sql_statement += "FROM sys.tables "
             sql_statement += "ORDER BY name"
             return self.read_sql(sql_statement)
         else:
