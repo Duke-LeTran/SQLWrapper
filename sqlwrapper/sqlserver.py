@@ -272,7 +272,7 @@ class SQLServer(SQL): # level 1
         # SCHEMA
         prefix = self._get_schema(schema, self.schema_name)
         # DATABASE
-        prefix = self._get_schema(prefix, database, self.db_name)
+        prefix = self._get_database(prefix, database, self.db_name)
         # LIMIT - select TOP goes in front in SQLServer, hence the 
         sql_statement = self._limit(col_names, limit, prefix, tbl_name)
         # WHERE
