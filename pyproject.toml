@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "sqlwrapper"
-version = "0.1.1"
+version = "0.1.2"
 description = "sqlwrapper database tools"
 authors = ["Duke LeTran <daletran@ucdavis.edu>"]
 readme = "README.md"
@@ -17,7 +17,7 @@ numpy = "*"
 sqlalchemy = "*"
 cx-oracle = "*"
 pyodbc = "*"
-piesafe = "1.2.0"
+#piesafe = "1.2.0"
 
 [build-system]
 requires = ["poetry-core"]
