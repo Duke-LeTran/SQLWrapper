@@ -335,7 +335,7 @@ class SQLServer(SQL): # level 1
         ls_exclude = [f"'{x}'" for x in ls_exclude] # add quotes around strings
         sql_statement = "SELECT name FROM sys.schemas "
         sql_statement += f"WHERE name not in "
-        sql_statement += f"({', '.join([ls_exclude])})"
+        sql_statement += f"({', '.join(ls_exclude)})"
         sql_statement += "AND name not like 'HS\\%'"
         sql_statement += "ORDER BY name"
         return list(self.read_sql(sql_statement))
@@ -347,7 +347,7 @@ class SQLServer(SQL): # level 1
         ls_exclude = [f"'{x}'" for x in ls_exclude]
         sql_statement = "SELECT name FROM sys.databases "
         sql_statement += "WHERE name not in "
-        sql_statement += f"({', '.join([ls_exclude])})" 
+        sql_statement += f"({', '.join(ls_exclude)})" 
         return list(self.read_sql(sql_statement))
 
     def truncate(self, table:str,
