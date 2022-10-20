@@ -305,7 +305,7 @@ class SQLServer(SQL): # level 1
                 tbl_name:str,
                 verbose=False,
                 return_dtype=False) -> Union[pd.core.indexes.base.Index, list]:
-    """https://docs.sqlalchemy.org/en/14/dialects/mssql.html#sql-server-data-types"""
+        """https://docs.sqlalchemy.org/en/14/dialects/mssql.html#sql-server-data-types"""
         if verbose:
             return self.inspector.get_columns(tbl_name.lower())
         elif return_dtype:
@@ -332,9 +332,10 @@ class SQLServer(SQL): # level 1
             'INFORMATION_SCHEMA',
             'guest'
         ]
+        ls_exclude = [f"'{x}'" for x in ls_exclude] # add quotes around strings
         sql_statement = "SELECT name FROM sys.schemas "
         sql_statement += f"WHERE name not in "
-        sql_statement += f"({', '.join([f"'{x}'" for x in ls_exclude])})"
+        sql_statement += f"({', '.join([ls_exclude])})"
         sql_statement += "AND name not like 'HS\\%'"
         sql_statement += "ORDER BY name"
         return list(self.read_sql(sql_statement))
@@ -343,9 +344,10 @@ class SQLServer(SQL): # level 1
     def databases(self):
         """returns a list of all databases"""
         ls_exclude = ['master','tempdb','model','msdb']
+        ls_exclude = [f"'{x}'" for x in ls_exclude]
         sql_statement = "SELECT name FROM sys.databases "
         sql_statement += "WHERE name not in "
-        sql_statement += f"({', '.join([f"'{x}'" for x in ls_exclude])})" 
+        sql_statement += f"({', '.join([ls_exclude])})" 
         return list(self.read_sql(sql_statement))
 
     def truncate(self, table:str,
