@@ -205,9 +205,9 @@ class MariaDB(SQL): # level 1
         # bind_vars = bind_vars[:-2]
 
         # E. GENERATE INSERT STATEMENT #########################################
-        ## validate length
-        assert len(ls_cols) == max(map(len, lines)), f"Number of VALUES {len(ls_cols)} exceeds COLS {max(map(len, lines))}"
-        assert len(ls_cols) ==len(bind_vars.split(', ')) , f"Number of BIND_VARS {len(ls_cols)} exceeds COLS {len(bind_vars.split(', '))}"
+        ## validate length, debug only
+        # assert len(ls_cols) == max(map(len, lines)), f"Number of VALUES {len(ls_cols)} exceeds COLS {max(map(len, lines))}"
+        # assert len(ls_cols) ==len(bind_vars.split(', ')) , f"Number of BIND_VARS {len(ls_cols)} exceeds COLS {len(bind_vars.split(', '))}"
 
         ## generate sql statement
         sql = f'INSERT INTO {table.lower()} ({cols}) values ({bind_vars})'
