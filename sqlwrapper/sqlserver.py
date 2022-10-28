@@ -426,7 +426,8 @@ class SQLServer(SQL): # level 1
                      schema=None,
                      cap_cols=False,
                      index=False, # set default to False
-                     method="multi",
+                     if_exists='append', #sets default to append
+                     method="multi", # sets default to multi
                      chunksize=1000,
                      **kwargs):
         """
@@ -455,6 +456,7 @@ class SQLServer(SQL): # level 1
             schema=schema,
             method=method,
             chunksize=chunksize,
+            if_exists=if_exists,
             **kwargs)
 
         
