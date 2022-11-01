@@ -420,7 +420,7 @@ class SQLServer(SQL): # level 1
     #                     method=method,
     #                     schema=schema)
 
-    def insert(self, df_input,
+    def insert(self, df_input:pd.DataFrame,
                      table,
                      engine=None,
                      schema=None,
@@ -449,14 +449,19 @@ class SQLServer(SQL): # level 1
         if schema is None:
             schema = self.schema_name
 
+        # Convert to strings
+        if method == 'multi':
+            for col in df_input.columns:
+                df_input.loc[:,col] = df[col].astype(str)
+
         # You can use pd.DataFrame.to_sql() for SQLServer!!
         df_input.to_sql(table,
             engine,
+            if_exists=if_exists,
             index=index,
             schema=schema,
             method=method,
             chunksize=chunksize,
-            if_exists=if_exists,
             **kwargs)
 
         
