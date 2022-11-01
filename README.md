@@ -8,6 +8,13 @@ of DSN connection strings to be database agnostic. The Oracle, SQLServer, and Ma
 implementations are the most robust; additional database connections exist 
 but may require further development.
 
+# 01. TO-DOs
+* fix sqlserver.insert() # executemany
+* fix mariadb.insert() # executemany
+
+For now, just use `pandas.DataFrame().to_sql()`. This should work ok for these
+database flavors.
+
 # 00. Setup
 ```bash
 git clone git@github.com:Duke-LeTran/SQLWrapper.git ~/path_to_pythonpath/SQLWrapper
