@@ -7,7 +7,8 @@ import numpy as np
 
 import cx_Oracle
 from cx_Oracle import InterfaceError
-from sqlwrapper import db_menu, PATH_TO_CONFIG, CONFIG_FILE, Prompter
+#from sqlwrapper import db_menu, PATH_TO_CONFIG, CONFIG_FILE, Prompter
+from sqlwrapper import db_menu, Prompter
 from sqlwrapper.base import SQL
 from typing import Union
 

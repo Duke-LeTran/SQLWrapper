@@ -1,8 +1,8 @@
 import logging
 import sqlalchemy
 
-#from sqlwrapper import Prompter
-from sqlwrapper import db_menu, PATH_TO_CONFIG, CONFIG_FILE, Prompter
+from sqlwrapper import Prompter
+#from sqlwrapper import db_menu, PATH_TO_CONFIG, CONFIG_FILE, Prompter
 from sqlwrapper.base import SQL
 #from sqlwrapper.config import PATH_TO_CONFIG, CONFIG_FILE
 #from sqlwrapper.dbmenu import db_menu

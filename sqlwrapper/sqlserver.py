@@ -5,7 +5,8 @@ from getpass import getpass
 import pyodbc
 import pandas as pd
 from typing import Union
-from sqlwrapper import db_menu, PATH_TO_CONFIG, CONFIG_FILE, Prompter
+#from sqlwrapper import db_menu, PATH_TO_CONFIG, CONFIG_FILE, Prompter
+from sqlwrapper import Prompter
 from sqlwrapper.base import SQL
 
 # logging
@@ -47,20 +48,22 @@ class SQLServer(SQL): # level 1
             self.engine.dispose()
                 
     def _generate_conn_string(self, config):
-        if config['world'] is None: # if windows auth (no username)
-            self.conn_string = (f"DRIVER={config['DRIVER']};" \
-                                f"SERVER={config['SERVER']};" \
-                                f"DATABASE={config['DATABASE']};" \
-                                f"TRUSTED_CONNECTION={self.trusted_bool};")
-                               #f"UID=user;" \ # MUST delete trusted connection
-                               #f"PWD=password"
-        else:
+        #if config['world'] is None: # if windows auth (no username)
+        try:
             self.conn_string = (f"DRIVER={config['DRIVER']};" \
                                f"SERVER={config['SERVER']};" \
                                f"DATABASE={config['DATABASE']};" \
                                f"UID={config['hello']};" \
                                f"PWD={config['world']}")
                                #f"TRUSTED_CONNECTION={self.trusted_bool};")
+        except KeyError as e:
+            log.warning("Attemping to connect with Windows Auth...")
+            self.conn_string = (f"DRIVER={config['DRIVER']};" \
+                                f"SERVER={config['SERVER']};" \
+                                f"DATABASE={config['DATABASE']};" \
+                                f"TRUSTED_CONNECTION={self.trusted_bool};")
+                               #f"UID=user;" \ # MUST delete trusted connection
+                               #f"PWD=password"
         self.encoded_url_string = urllib.parse.quote_plus(self.conn_string)
         return self.encoded_url_string
         
@@ -101,10 +104,10 @@ class SQLServer(SQL): # level 1
         self.engine=None
 
     def _connect(self, config):
-        if config['world'] is None:
-            config['world']=getpass()
-        else:
-            pw=config['world']
+        # if config['world'] is None:
+        #     config['world']=getpass()
+        # else:
+        #pw=config['world']
         self._generate_conn_string(config)
         self._generate_engine()
         self._generate_inspector()

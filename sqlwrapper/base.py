@@ -21,7 +21,7 @@ import os
 import pandas as pd
 from sqlalchemy import exc
 # SQLWrapper
-from sqlwrapper.config import PATH_TO_CONFIG, CONFIG_FILE
+#from sqlwrapper.config import PATH_TO_CONFIG, CONFIG_FILE
 from sqlwrapper.prompter import Prompter
 from typing import Union
 

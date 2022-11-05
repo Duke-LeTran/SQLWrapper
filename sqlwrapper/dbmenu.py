@@ -1,4 +1,10 @@
 from configparser import ConfigParser
+from typing import Union
+from pathlib import Path, PurePath
+#from sqlwrapper import PATH_TO_CONFIG, CONFIG_FILE
+#import df_tools
+import os
+
 
 class db_menu:
     """
@@ -7,18 +13,23 @@ class db_menu:
         * path_to_config
         * db_config.ini file
     """
-    def __init__(self, PATH_TO_CONFIG, CONFIG_FILE, opt_print=True):
+    def __init__(self, opt_print=True):
         """Windows Config Utils, create child class as necessary"""
-        self._setup_options(PATH_TO_CONFIG, CONFIG_FILE) #get setup options
+        print(PATH_TO_CONFIG, CONFIG_FILE)
+        input(' >> ')
+        self._setup_options() #get setup options
         self._ls_db(opt_print=opt_print) # get list of db from config files
         self.db_selected = None
         
-    def _setup_options(self, PATH_TO_CONFIG, CONFIG_FILE):
+    def _setup_options(self):
         """
         SETUP: These need to be setup once before use
         """
+        #path, file = self._resolve_path_to_config(PATH_TO_CONFIG, CONFIG_FILE)
         self.path_to_config = PATH_TO_CONFIG
         self.db_config = CONFIG_FILE
+        #print(path, file)
+
     
     def _ls_db(self, opt_print):
         """# get list of db from config files"""
