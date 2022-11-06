@@ -27,7 +27,7 @@ class SQLServer(SQL): # level 1
                  trusted='yes',
                  opt_print=True):
         # attempt ot initizlie
-        config = config_reader().read_config(db_entry, opt_print) # local variable not saved
+        config = config_reader().read(db_entry, opt_print) # local variable not saved
         if config is None:
             config = db_menu.prompt_db()
         #try:
