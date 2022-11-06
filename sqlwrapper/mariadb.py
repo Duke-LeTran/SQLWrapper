@@ -1,13 +1,14 @@
 import logging
 import sqlalchemy
-
-from sqlwrapper import Prompter
-#from sqlwrapper import db_menu, PATH_TO_CONFIG, CONFIG_FILE, Prompter
-from sqlwrapper.base import SQL
-#from sqlwrapper.config import PATH_TO_CONFIG, CONFIG_FILE
-#from sqlwrapper.dbmenu import db_menu
 from typing import Union
 import pandas as pd
+
+
+# from sqlwrapper import Prompter
+from sqlwrapper.prompter import Prompter
+from sqlwrapper.base import SQL
+# from sqlwrapper.config import PATH_TO_CONFIG, CONFIG_FILE
+from sqlwrapper.config import config_reader
 
 log = logging.getLogger(__name__)
 
@@ -24,11 +25,9 @@ class MariaDB(SQL): # level 1
     This assumse you have all your Oracle ENV variables set correctly, e.g.
 
     """
-    def __init__(self, config='redcap', opt_print=False): #defaults to Velos
-        config = db_menu(PATH_TO_CONFIG, CONFIG_FILE, opt_print=opt_print).read_config(db=config) # local variable not saved
+    def __init__(self, db_entry='redcap', opt_print=True): 
+        config = self._read_config(db_entry, opt_print)
         super(MariaDB, self).__init__(schema_name=config['hello']) # username is schema
-        self.db_name = config['db_name']
-        self.schema_name = config['db_name']
         self._generate_engine(config)
         self._generate_inspector()
         self._save_config(config)
@@ -38,10 +37,12 @@ class MariaDB(SQL): # level 1
             self.engine.dispose()
         except AttributeError: # never successfully made an engine
             pass
-        try:
-            self.conn.close()
-        except AttributeError: #never sucessfully made a connection :'(
-            pass
+    
+    def _read_config(db_entry:str, opt_print:bool):
+        config = config_reader().read(db_entry, opt_print)
+        self.db_name = config['db_name']
+        self.schema_name = config['db_name']
+        return config
 
     def _generate_conn_string(self, config) -> str:
         """generate connection string from config"""

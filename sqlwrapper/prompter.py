@@ -18,7 +18,7 @@ class Prompter:
         msg = self.msg_generic if (msg is None) else msg #if none, generic; else msg
         return True if (input(msg + " (y/n) >> ").lower() in self.ls_yes) else False
     
-    def prompt_menu(self, msg:str=None, ls:list=[]):
+    def prompt_menu(self, msg:str=None, ls:list=[], sep='|'):
         """
         Input: msg, ls
         Return: item from list
@@ -32,7 +32,7 @@ class Prompter:
         while True:
             try: # try 1) Print menu 2) get user input
                 for i,j in enumerate(ls):
-                    print(i, '|', j)
+                    print(i, sep, j)
                 user_input = input(msg + " >> ")
                 user_input = int(user_input)
             except ValueError: # if usr enters error, ie, not an integer

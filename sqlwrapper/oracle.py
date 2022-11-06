@@ -7,8 +7,9 @@ import numpy as np
 
 import cx_Oracle
 from cx_Oracle import InterfaceError
-#from sqlwrapper import db_menu, PATH_TO_CONFIG, CONFIG_FILE, Prompter
-from sqlwrapper import db_menu, Prompter
+#from sqlwrapper.dbmenu import db_menu
+from sqlwrapper.prompter import Prompter
+from sqlwrapper.config import config_reader
 from sqlwrapper.base import SQL
 from typing import Union
 
@@ -24,8 +25,6 @@ class FailedInsertMissingTable(Error):
     """Raised when attemps to insert pandas df but table is not defined"""
     pass
 
-
-
 class Oracle(SQL): # level 1
     """
     Oracle Database Wrapper
@@ -40,8 +39,8 @@ class Oracle(SQL): # level 1
         * (full) LD_LIBRARY_PATH=$ORACLE_HOME/lib:$LD_LIBRARY_PATH
         * (instant) LD_LIBRARY_PATH=$ORACLE_HOME:$LD_LIBRARY_PATH
     """
-    def __init__(self, config='Velos', opt_print=False): #defaults to Velos
-        config = db_menu(PATH_TO_CONFIG, CONFIG_FILE, opt_print=opt_print).read_config(db=config) # local variable not saved
+    def __init__(self, db_entry='Velos', opt_print=True): #defaults to Velos
+        config = config_reader().read(db_entry, opt_print) # local variable not saved
         super(Oracle, self).__init__(schema_name=config['hello']) # username is schema
         self._connect(config)
         self._save_config(config)

@@ -6,9 +6,10 @@ import pyodbc
 import pandas as pd
 from typing import Union
 #from sqlwrapper import db_menu, PATH_TO_CONFIG, CONFIG_FILE, Prompter
-from sqlwrapper import Prompter
+# from sqlwrapper import Prompter
 from sqlwrapper.base import SQL
-
+from sqlwrapper.prompter import Prompter
+from sqlwrapper.config import config_reader
 # logging
 log = logging.getLogger(__name__)
 
@@ -21,12 +22,12 @@ class SQLServer(SQL): # level 1
     Set-up: authentication config
     """
     def __init__(self,
-                 config='OMOP_DeID',
+                 db_entry='OMOP_DeID',
                  schema_name='dbo',
                  trusted='yes',
                  opt_print=True):
         # attempt ot initizlie
-        config = db_menu(PATH_TO_CONFIG, CONFIG_FILE, opt_print=opt_print).read_config(db=config) # local variable not saved
+        config = config_reader().read_config(db_entry, opt_print) # local variable not saved
         if config is None:
             config = db_menu.prompt_db()
         #try:
