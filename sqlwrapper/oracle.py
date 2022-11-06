@@ -385,13 +385,13 @@ class Oracle(SQL): # level 1
         conn, cursor = self._generate_conn_cursor()
         sql_statement = f"UPDATE {tbl_name.lower()} "
         if type(set_value) == str: #if string, wrap as string
-            sql_statement += f"SET {set_col} = '{set_val}' "
+            sql_statement += f"SET {set_col} = '{set_value}' "
         else:
-            sql_statement += f"SET {set_col} = {set_val} "
-        if type(cond_val) == str: #if string, wrap as string
-            sql_statement += f"WHERE {cond_col} = '{cond_val}'"
+            sql_statement += f"SET {set_col} = {set_value} "
+        if type(cond_value) == str: #if string, wrap as string
+            sql_statement += f"WHERE {cond_col} = '{cond_value}'"
         else:
-            sql_statement += f"WHERE {cond_col} = {cond_val}"
+            sql_statement += f"WHERE {cond_col} = {cond_value}"
         sql = self._readify_sql(sql_statement)
         if not silent:
             print(sql)
