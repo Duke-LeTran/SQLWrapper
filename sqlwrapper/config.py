@@ -49,6 +49,7 @@ class config_looker:
     def __init__(self, LS_PATH, LS_CONFIG_FILES):
         # setup
         self._init_paths(LS_PATH, LS_CONFIG_FILES)
+        self._init_if_none()
     
     @property
     def current(self):
@@ -61,6 +62,22 @@ class config_looker:
             self._CONFIG = self._PATH / self._FILE
         except ValueError:
             raise ValueError("Pass an iterable with two items")
+
+    @property
+    def current_list(self):
+        return self._LS_PATH, self._LS_CONFIG_FILES
+
+    @current_list.setter
+    def current_list(self, values):
+        try:
+            path, file = values
+            if path not in self._LS_PATH:
+                self._LS_PATH.append(path)
+            if file not in self._LS_CONFIG_FILES:
+                self._LS_CONFIG_FILES.append(file)
+        except ValueError:
+            raise ValueError("Pass an iterable with two items")
+    
     
     @property
     def CONFIG(self):
@@ -74,6 +91,35 @@ class config_looker:
                 if os.path.exists(path / file):
                     self.current = (path, file)
                     return path, file
+
+    def _init_if_none(self):
+        while self.df_config.empty:
+            print(self.df_config_all)
+            print('No config file was found.')
+            msg = 'Do you want to init `db_config.ini` '
+            msg += 'in your current working directory?'
+            if p.prompt_confirmation(msg):
+                self._init_new_config()
+            elif p.prompt_confirmation('Do you want to add a path?'):
+                path = input('Enter path_to_config >> ')
+                self.append_path(path)
+                self._init_paths(self._LS_PATH, self._LS_CONFIG_FILES)
+
+    def _init_new_config(self):
+        import shutil
+        print("Initializing a new config file: ")
+        path = Path(os.path.dirname(__file__))
+        new_config_file = 'db_config.ini'
+        src = path / '..' / 'config'
+        dst = Path.cwd()
+        shutil.copyfile(src / 'db_config.ini.example',
+                        dst / new_config_file)
+
+        self.current = (dst, new_config_file)
+        self.current_list = (dst, new_config_file) 
+        print('  path_to_config:', dst / new_config_file)
+
+
     @property
     def config_path(self):
         return self._LS_PATH
@@ -81,8 +127,9 @@ class config_looker:
     def append_path(self, path:Union[str, Path]):
         if type(path) == str:
             path = Path(path)
+        
         self._LS_PATH.append(path)
-        print(self.config_paths)
+        #print(self.config_paths)
 
     @property
     def df_config(self):
@@ -120,6 +167,7 @@ class config_reader(config_looker):
         SETUP: These need to be setup once before use
         """
         #self.config_looker = config_looker(LS_PATH, LS_CONFIG_FILES)
+        os.path.basename(__file__)
         path, file = self.current
         self._config_file = path / file
     
