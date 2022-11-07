@@ -4,10 +4,11 @@ from sqlwrapper.config import config_reader
 from sqlwrapper.oracle import Oracle
 from sqlwrapper.sqlserver import SQLServer 
 from sqlwrapper.mariadb import MariaDB 
+import logging
 #import df_tools
 import os
 
-
+log = logging.getLogger(__name__)
 # class config_reader:
 #     """
 #     Manages the config file

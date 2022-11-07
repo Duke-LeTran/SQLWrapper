@@ -10,6 +10,8 @@ from typing import Union
 from sqlwrapper.base import SQL
 from sqlwrapper.prompter import Prompter
 from sqlwrapper.config import config_reader
+from getpass import getpass
+
 # logging
 log = logging.getLogger(__name__)
 
@@ -78,8 +80,8 @@ class SQLServer(SQL): # level 1
         This is specifically for FreeTDS connections
         credit: https://stackoverflow.com/a/65059291/9335288
         """
-        return f"mssql+pymssql://{config['hello']}:{config['world']}@{config['SERVER']}/{config['DATABASE']}"
-        
+        return f"mssql+pymssql://{config['hello']}:{getpass()}@{config['SERVER']}/{config['DATABASE']}"
+
     def _generate_engine(self, config):
         """
         https://docs.sqlalchemy.org/en/20/dialects/mssql.html
