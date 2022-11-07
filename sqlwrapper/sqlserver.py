@@ -49,9 +49,16 @@ class SQLServer(SQL): # level 1
             self.engine.dispose()
                 
     def _generate_conn_string(self, config):
-        #if config['world'] is None: # if windows auth (no username)
+        if config['DRIVER'] == '{FreeTDS}': # if windows auth (no username)
+            conn_string = (f"DRIVER={config['DRIVER']};" \
+                               f"SERVER={config['SERVER']};" \
+                               f"DATABASE={config['DATABASE']};" \
+                               f"UID={config['hello']};" \
+                               f"PWD={getpass()}")
+            encoded_url_string = urllib.parse.quote_plus(conn_string)
+            return encoded_url_string
         try:
-            self.conn_string = (f"DRIVER={config['DRIVER']};" \
+            conn_string = (f"DRIVER={config['DRIVER']};" \
                                f"SERVER={config['SERVER']};" \
                                f"DATABASE={config['DATABASE']};" \
                                f"UID={config['hello']};" \
@@ -59,17 +66,17 @@ class SQLServer(SQL): # level 1
                                #f"TRUSTED_CONNECTION={self.trusted_bool};")
         except KeyError as e:
             log.warning("Attemping to connect with Windows Auth...")
-            self.conn_string = (f"DRIVER={config['DRIVER']};" \
+            conn_string = (f"DRIVER={config['DRIVER']};" \
                                 f"SERVER={config['SERVER']};" \
                                 f"DATABASE={config['DATABASE']};" \
                                 f"TRUSTED_CONNECTION={self.trusted_bool};")
                                #f"UID=user;" \ # MUST delete trusted connection
                                #f"PWD=password"
-        self.encoded_url_string = urllib.parse.quote_plus(self.conn_string)
-        return self.encoded_url_string
+        encoded_url_string = urllib.parse.quote_plus(conn_string)
+        return encoded_url_string
         
     # def _generate_connection(self, config):
-    #     self.conn = pyodbc.connect(self.conn_string, 
+    #     self.conn = pyodbc.connect(conn_string, 
     #         uid=config['hello'], 
     #         pw=config['world']
     #     )
@@ -91,9 +98,10 @@ class SQLServer(SQL): # level 1
         https://docs.sqlalchemy.org/en/20/dialects/mssql.html
         https://stackoverflow.com/a/48861231/9335288
         """
-        self.url_conn_string = (f'mssql+pyodbc:///?odbc_connect=' \
-                                         f'{self.encoded_url_string}')
-        self.engine = sqlalchemy.create_engine(self.url_conn_string, 
+        encoded_url_string = self._generate_conn_string()
+        url_conn_string = (f'mssql+pyodbc:///?odbc_connect=' \
+                                         f'{encoded_url_string}')
+        self.engine = sqlalchemy.create_engine(url_conn_string, 
                                              fast_executemany=True)
 
     def _generate_inspector(self):
@@ -118,12 +126,12 @@ class SQLServer(SQL): # level 1
         self.engine.dispose()
         self.engine = None
         config = self._config
-        self.conn_string = (f"DRIVER={config['DRIVER']};" \
+        conn_string = (f"DRIVER={config['DRIVER']};" \
                                f"SERVER={config['SERVER']};" \
                                f"DATABASE={config['DATABASE']};" \
                                f"UID={config['hello']};" \
                                f"PWD={config['world']}")
-        self.encoded_url_string = urllib.parse.quote_plus(self.conn_string)
+        self.encoded_url_string = urllib.parse.quote_plus(conn_string)
         self._flush()
         self._generate_engine()
         self._generate_inspector()

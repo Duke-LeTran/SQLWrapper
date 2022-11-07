@@ -18,7 +18,7 @@ Research Infrastructure, IT Health Informatics, UC Davis Health
 #from sqlwrapper.config import PATH_TO_CONFIG, CONFIG_FILE
 from sqlwrapper.config import config_reader
 from sqlwrapper.dbmenu import connect, db_menu
-config_reader = config_reader()
+config = config_reader()
 menu = db_menu()
 #from sqlwrapper.config import _resolve_path_to_config, ls_path_to_config, ls_config_file
 #PATH_TO_CONFIG, CONFIG_FILE = _resolve_path_to_config(ls_path_to_config, ls_config_file)
