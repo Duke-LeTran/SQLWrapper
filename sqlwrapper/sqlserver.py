@@ -74,26 +74,8 @@ class SQLServer(SQL): # level 1
                                #f"PWD=password"
         encoded_url_string = urllib.parse.quote_plus(conn_string)
         return encoded_url_string
-        
-    # def _generate_connection(self, config):
-    #     self.conn = pyodbc.connect(conn_string, 
-    #         uid=config['hello'], 
-    #         pw=config['world']
-    #     )
-
-    def use_db(self, db_name=None):
-        """USE DATABASE <new-db-name>;"""
-        if db_name is None:
-            print(f'No changes to db_name {self.db_name}')
-            return
-        print(f'Current database: {self.prefix}')
-        print(f'Change to database: {db_name}.{self.schema_name}')
-        msg='Are you sure you want to change databases?'
-        if self.p.prompt_confirmation(msg=msg):
-            self.db_name = db_name
-            self.prefix = db_name + '.' + self.schema_name
     
-    def _generate_engine(self):
+    def _generate_engine(self, config):
         """
         https://docs.sqlalchemy.org/en/20/dialects/mssql.html
         https://stackoverflow.com/a/48861231/9335288
@@ -117,8 +99,8 @@ class SQLServer(SQL): # level 1
         #     config['world']=getpass()
         # else:
         #pw=config['world']
-        self._generate_conn_string(config)
-        self._generate_engine()
+        #self._generate_conn_string(config)
+        self._generate_engine(config)
         self._generate_inspector()
         print(f'New connection successfully established to: {self.prefix}')
     
@@ -153,6 +135,18 @@ class SQLServer(SQL): # level 1
             self.db_name = db_name
             self.prefix = db_name + '.' + schema_name
             self._reconnect()
+
+    def use_db(self, db_name=None):
+        """USE DATABASE <new-db-name>;"""
+        if db_name is None:
+            print(f'No changes to db_name {self.db_name}')
+            return
+        print(f'Current database: {self.prefix}')
+        print(f'Change to database: {db_name}.{self.schema_name}')
+        msg='Are you sure you want to change databases?'
+        if self.p.prompt_confirmation(msg=msg):
+            self.db_name = db_name
+            self.prefix = db_name + '.' + self.schema_name
 
     def change_schema(self, schema_name=None):
         """ALTER SCHEMA <new-schema-name>;"""
