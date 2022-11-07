@@ -47,24 +47,22 @@ class SQLServer(SQL): # level 1
         msg_closed_success = 'Both the cursor and connection are successfully closed.'
         if self.engine:
             self.engine.dispose()
+
+    def _connect(self, config):
+        self._generate_engine(config)
+        self._generate_inspector()
+        print(f'New connection successfully established to: {self.prefix}')
                 
     def _generate_conn_string(self, config):
-        if config['DRIVER'] == '{FreeTDS}': # if windows auth (no username)
-            conn_string = (f"DRIVER={config['DRIVER']};" \
-                               f"SERVER={config['SERVER']};" \
-                               f"DATABASE={config['DATABASE']};" \
-                               f"UID={config['hello']};" \
-                               f"PWD={getpass()}")
-            encoded_url_string = urllib.parse.quote_plus(conn_string)
-            return encoded_url_string
-        try:
+
+        try: # sql auth
             conn_string = (f"DRIVER={config['DRIVER']};" \
                                f"SERVER={config['SERVER']};" \
                                f"DATABASE={config['DATABASE']};" \
                                f"UID={config['hello']};" \
                                f"PWD={config['world']}")
                                #f"TRUSTED_CONNECTION={self.trusted_bool};")
-        except KeyError as e:
+        except KeyError as e: # windows auth
             log.warning("Attemping to connect with Windows Auth...")
             conn_string = (f"DRIVER={config['DRIVER']};" \
                                 f"SERVER={config['SERVER']};" \
@@ -74,16 +72,27 @@ class SQLServer(SQL): # level 1
                                #f"PWD=password"
         encoded_url_string = urllib.parse.quote_plus(conn_string)
         return encoded_url_string
-    
+
+    def _generate_dns_string(self, config):
+        """
+        This is specifically for FreeTDS connections
+        credit: https://stackoverflow.com/a/65059291/9335288
+        """
+        return f"mssql+pymssql://{config['hello']}:{config['world']}@{config['SERVER']}/{config['DATABASE']}"
+        
     def _generate_engine(self, config):
         """
         https://docs.sqlalchemy.org/en/20/dialects/mssql.html
         https://stackoverflow.com/a/48861231/9335288
         """
-        encoded_url_string = self._generate_conn_string(config)
-        url_conn_string = (f'mssql+pyodbc:///?odbc_connect=' \
-                                         f'{encoded_url_string}')
-        self.engine = sqlalchemy.create_engine(url_conn_string, 
+        
+        if 'freetds' in config['DRIVER'].lower():
+            self.engine = sqlalchemy.create_engine(self._generate_dns_string(config))
+
+        else:
+            url_conn_string = (f'mssql+pyodbc:///?odbc_connect=' \
+                               f'{self._generate_conn_string(config)}')
+            self.engine = sqlalchemy.create_engine(url_conn_string, 
                                              fast_executemany=True)
 
     def _generate_inspector(self):
@@ -93,16 +102,6 @@ class SQLServer(SQL): # level 1
     def _flush(self):
         self.inspector=None
         self.engine=None
-
-    def _connect(self, config):
-        # if config['world'] is None:
-        #     config['world']=getpass()
-        # else:
-        #pw=config['world']
-        #self._generate_conn_string(config)
-        self._generate_engine(config)
-        self._generate_inspector()
-        print(f'New connection successfully established to: {self.prefix}')
     
     def _reconnect(self):
         self.engine.dispose()
