@@ -80,7 +80,7 @@ class SQLServer(SQL): # level 1
         https://docs.sqlalchemy.org/en/20/dialects/mssql.html
         https://stackoverflow.com/a/48861231/9335288
         """
-        encoded_url_string = self._generate_conn_string()
+        encoded_url_string = self._generate_conn_string(config)
         url_conn_string = (f'mssql+pyodbc:///?odbc_connect=' \
                                          f'{encoded_url_string}')
         self.engine = sqlalchemy.create_engine(url_conn_string, 

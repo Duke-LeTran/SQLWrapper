@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "sqlwrapper"
-version = "0.1.7"
+version = "0.1.8"
 description = "sqlwrapper database tools"
 authors = ["Duke LeTran <daletran@ucdavis.edu>"]
 readme = "README.md"
