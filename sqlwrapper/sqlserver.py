@@ -1,12 +1,10 @@
 import logging
 import urllib
-import sqlalchemy
-from getpass import getpass
+from sqlalchemy.engine import URL
+from sqlalchemy import create_engine, inspect
 import pyodbc
 import pandas as pd
 from typing import Union
-#from sqlwrapper import db_menu, PATH_TO_CONFIG, CONFIG_FILE, Prompter
-# from sqlwrapper import Prompter
 from sqlwrapper.base import SQL
 from sqlwrapper.prompter import Prompter
 from sqlwrapper.config import config_reader
@@ -46,7 +44,6 @@ class SQLServer(SQL): # level 1
         self._save_config(config)
 
     def __del__(self):
-        msg_closed_success = 'Both the cursor and connection are successfully closed.'
         if self.engine:
             self.engine.dispose()
 
@@ -56,7 +53,22 @@ class SQLServer(SQL): # level 1
         print(f'New connection successfully established to: {self.prefix}')
                 
     def _generate_conn_string(self, config):
+        """
+        selects driver
+        """
+        # if FreeTDS driver
+        if config['DRIVER'].lower() in "{freetds}":
+            return self._generate_freetds_conn_string(config)
+        else: # if official microsoft ODBC drivers
+            return self._generate_mssql_conn_string(config)
 
+
+    def _generate_mssql_conn_string(self, config):
+        """ 
+        Driver: {ODBC Driver 17 for SQL Server}: 
+        * Generates conn_string using encoded odbc_connect method
+        * supports windows auth
+        """
         try: # sql auth
             conn_string = (f"DRIVER={config['DRIVER']};" \
                                f"SERVER={config['SERVER']};" \
@@ -73,32 +85,44 @@ class SQLServer(SQL): # level 1
                                #f"UID=user;" \ # MUST delete trusted connection
                                #f"PWD=password"
         encoded_url_string = urllib.parse.quote_plus(conn_string)
-        return encoded_url_string
+        return f'mssql+pyodbc:///?odbc_connect={encoded_url_string}'
 
-    def _generate_dns_string(self, config):
+    def _generate_freetds_conn_string(self, config):
         """
-        This is specifically for FreeTDS connections
-        credit: https://stackoverflow.com/a/65059291/9335288
+        Driver: FreeTDS
         """
-        return f"mssql+pymssql://{config['hello']}:{getpass()}@{config['SERVER']}/{config['DATABASE']}"
+        from sqlalchemy.engine import URL
+        from getpass import getpass
+
+        conn_string = URL.create(
+            "mssql+pyodbc",
+            username=config['hello'],
+            password=getpass(),
+            host=config['SERVER'],
+            port=config['PORT'],
+            database=config['DATABASE'],
+            query={
+                "driver": "FreeTDS", # this hard-coded for standarization
+            },
+        )
+        return conn_string
 
     def _generate_engine(self, config):
         """
         https://docs.sqlalchemy.org/en/20/dialects/mssql.html
         https://stackoverflow.com/a/48861231/9335288
         """
-        
-        if 'freetds' in config['DRIVER'].lower():
-            self.engine = sqlalchemy.create_engine(self._generate_dns_string(config))
-
-        else:
-            url_conn_string = (f'mssql+pyodbc:///?odbc_connect=' \
-                               f'{self._generate_conn_string(config)}')
-            self.engine = sqlalchemy.create_engine(url_conn_string, 
-                                             fast_executemany=True)
+        conn_string = self._generate_conn_string(config)
+        try:
+            self.engine = create_engine(conn_string, fast_executemany=True)
+        except Exception as e:
+            log.warning(e)
+            self.engine = create_engine(conn_string)
+        except Exception as e:
+            log.error(e)
+            raise
 
     def _generate_inspector(self):
-        from sqlalchemy import inspect
         self.inspector = inspect(self.engine)
 
     def _flush(self):
@@ -470,7 +494,3 @@ class SQLServer(SQL): # level 1
             method=method,
             chunksize=chunksize,
             **kwargs)
-
-        
-
-
