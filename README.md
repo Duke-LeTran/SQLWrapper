@@ -8,12 +8,6 @@ of DSN connection strings to be database agnostic. The Oracle, SQLServer, and Ma
 implementations are the most robust; additional database connections exist 
 but may require further development.
 
-# 01. TO-DOs
-* fix sqlserver.insert() # executemany
-* fix mariadb.insert() # executemany
-
-For now, just use `pandas.DataFrame().to_sql()`. This should work ok for these
-database flavors.
 
 # 00. Setup
 ```bash
@@ -75,43 +69,7 @@ db =  SQLWrapper.Oracle('ORACLE_DB_ENTRY')
 # note that the limit parameter is database agnostic
 ```
 
-## B. Common SQLAlchemy objects
-
-If you are familiar with SQLAlchemy, a couple of objects are generated as part 
-of the `db` object for convenience. This way, if you're already familiar with
-that framework, this something you may want to use.
-
-### Engine
-```python
-# sqlalchemy engine available within object
-pd.read_sql('SELECT * FROM TBL_NAME', db.engine)
-```
-
-### Inspector
-
-For more information on the inspector, see [here](https://docs.sqlalchemy.org/en/14/core/reflection.html#fine-grained-reflection-with-inspector).
-```python
-db.inspector.get_pk_constraint('TBL_NAME')
-db.inspector.get_columns('TBL_NAME')
-db.inspector.get_pk_constraint('TBL_NAME')
-```
-
-### cx_Oracle connections and cursors
-```python
-# if you need a cx_Oracle connection
-conn, cursor = db._generate_conn_cursor()
-
-try:
-    cursor.execute('')
-    conn.commit()
-except Exception as e:
-    log.error(e)
-finally:
-    conn.close()
-    cursor.close()
-```
-
-# 03. DQL
+# I. DQL
 ## A. Select
 ```python
 df_upload = db.select('TBL_NAME', limit=None, where='WHERE x = y') # returns a pandas df
@@ -139,16 +97,26 @@ db.columns('TBL_NAME')
 db.columns('TBL_NAME', verbose=True)
 ```
 
-# III. DML
+# II. DML
 ## A. Insert
-
-Note, table must already exist in database; db column names must match df's cols exactly.
 
 ```python
 # uploading df to Oracle database (create table first)
 # db.to_oracle(df_upload, 'TBL_NAME') - this is now deprecated
 db.insert(df_upload, 'TBL_NAME')
 ```
+
+This function is crucial for Oracle, which doesn't have `pd.DataFrame.to_sql()` 
+with multi flag built. The function uses cx_Oracle's executemany, so it's much 
+faster than. Note, the table must already exist in database; db column 
+names must match df's cols exactly.
+
+For SQLServer, MySQL, MariaDB, `df.to_sql()` should be sufficient. Future 
+functions may wrap around this or the `executemany()` functions.
+
+See more here: 
+* https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.to_sql.html
+
 
 ## B. Update
 
@@ -181,32 +149,30 @@ db.truncate('API_TABLE', answer='yes')
 db.drop('API_TABLE', answer='yes')
 ```
 
-# IV. Other tools
+# III. Specific Database flavor enhancements
 
-This are miscellaneous functions that may also be useful
-
-## A. Switch between schemas
+## A. Microsoft SQLServer
 
 Switch database, disposes engine, updates engine, updates object's variables
 
 ```python
-db.use_db('COVID_LDS_DLETRAN')
+db.use('COVID_LDS_DLETRAN')
 
 ```
 
-# V. Notes on Oracle Databases
+## B. Oracle
 
-You must ensure that all your Oracle drivers are setup properly. Refer to these
-confluence guides as necessary:
-* [How-To](https://confluence.ucdmc.ucdavis.edu/confluence/x/J4swBw): install the full Oracle 19.3c Client drivers using the Admin method to connect to Clarity
-* [How-To](https://confluence.ucdmc.ucdavis.edu/confluence/x/_w5QB): connect to Microsoft SQL Server using python and pyodbc
-* [How-To](https://confluence.ucdmc.ucdavis.edu/confluence/x/4wxQB): connect to an Oracle Database using python3.6+ and cx_Oracle
+Not specific, but significiant performance enhancements.
 
+```python
+db.insert(df, 'TBL_NAME')
+```
+## Oracle specific setups
 
 Example of `~/.bashrc`
 
 ```bash
-# Duke's full Oracle 19.3c client env var
+# Duke's Oracle 19.3c client env var
 # Date: 2021-10-20  
 # Oracle Environmental Variables
 #----------------------------------
@@ -218,9 +184,60 @@ export PATH="$ORACLE_HOME/bin:$PATH"
 
 ```
 
-You must also use sqlalchemy datatypes when using `pd.df.to_sql()` to push to an
-Oracle database. 
+# IV. Access to SQLAlchemy's objects
 
-See more here: 
-* https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.to_sql.html
-* https://docs.sqlalchemy.org/en/14/dialects/oracle.html#oracle-data-types
+If you are familiar with SQLAlchemy, a couple of objects are generated as part 
+of the `db` object for convenience if functions are not yet built. This way, 
+if you're already familiar with that framework, you have access too.
+
+## A. Engine
+```python
+# sqlalchemy engine available within object
+pd.read_sql('SELECT * FROM TBL_NAME', db.engine)
+```
+
+## B. Inspector
+
+For more information on the inspector, see [here](https://docs.sqlalchemy.org/en/14/core/reflection.html#fine-grained-reflection-with-inspector).
+```python
+db.inspector.get_pk_constraint('TBL_NAME')
+db.inspector.get_columns('TBL_NAME')
+db.inspector.get_pk_constraint('TBL_NAME')
+```
+
+## C. cx_Oracle connections and cursors
+```python
+# if you need a cx_Oracle connection
+conn, cursor = db._generate_conn_cursor()
+
+try:
+    cursor.execute('')
+    conn.commit()
+except Exception as e:
+    log.error(e)
+finally:
+    conn.close()
+    cursor.close()
+```
+
+
+
+
+# 03. Notes to myself
+
+# I. TO-DOs
+* add sqlserver.insert() support # executemany
+* add mariadb.insert() support # executemany
+* add Dockerfile or guide on installing database drivers
+* add support for DSN 
+* add support for Vault authentication
+* add support for `.env` files
+
+# II. Notes on Database drivers
+
+You must ensure that all your Oracle drivers are setup properly. 
+* How-To: install the full Oracle 19.3c instantl
+* How-To: connect to Microsoft SQL Server using python and pyodbc
+* How-To: connect to an Oracle Database using python3.6+ and cx_Oracle
+
+TO-DO: Generate guides or provide Dockerfile
