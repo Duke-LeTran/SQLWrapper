@@ -23,7 +23,7 @@ import pandas as pd
 #from sqlwrapper.dbmenu import db_menu
 from sqlwrapper.prompter import Prompter
 from typing import Union
-from configparser import ConfigParser
+from configparser import ConfigParser, RawConfigParser
 # logging
 log = logging.getLogger(__name__)
 
@@ -178,8 +178,17 @@ class config_reader(config_looker):
     
     @property
     def config(self):
+        
         """the actual config file"""
-        config = ConfigParser()
+        config = ConfigParser()#interpolation=None)
+        config.read(self.CONFIG)
+        return config
+
+    @property
+    def config_raw(self):
+        
+        """the actual config file"""
+        config = RawConfigParser()
         config.read(self.CONFIG)
         return config
     
@@ -191,17 +200,26 @@ class config_reader(config_looker):
     def read(self, 
             db_entry:str=None,
             opt_print=True, 
-            return_entry=True):
-        msg = f'Initializing database connection from '
-        msg += f'config file {self.CONFIG} using [{db_entry}].'
-            
+            return_entry=True,
+            interpolate=False):
+        # if verbose 
+        if opt_print:
+            msg = f'Initializing database connection from '
+            msg += f'config file {self.CONFIG} using [{db_entry}].'
+            print(msg)
+
+        # use regular ConfigParser
+        if interpolate:
+            config_result = self.config
+        # else use RawConfigParser (default)
+        else: 
+            config_result = self.config_raw
+        
+        # if db_entry, return only section
         if return_entry and db_entry is not None: # return only entry
-            if opt_print:
-                print(msg)
-            return self.config[db_entry]
-        else: # return entire config
-            return self.config
+            return config_result[db_entry]
+        # else, return the whole config file
+        else: 
+            return config_result
 
 
-# config_looker = config_looker(LS_PATH, LS_CONFIG_FILES)
-# config_reader = config_reader()

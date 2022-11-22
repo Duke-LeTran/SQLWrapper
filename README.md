@@ -61,17 +61,20 @@ DATABASE = NameOfDatabase
 ```python
 import pandas as pd
 import numpy as np
-import SQLWrapper
-from sqlalchemy.dialects.oracle import NUMBER, VARCHAR2, DATE
+import sqlwrapper
+from sqlwrapper import Oracle, SQLServer, MariaDB
 
-# Initalize the database conneciton object
-db =  SQLWrapper.Oracle('ORACLE_DB_ENTRY')
-# note that the limit parameter is database agnostic
+# Two methods: initalize the database conneciton object
+db = sqlwrapper.connect('ORACLE_DB_ENTRY')
+db = Oracle('ORACLE_DB_ENTRY')
+
+# If you don't remember, you can do
 ```
 
 # I. DQL
 ## A. Select
 ```python
+# note, limit flag is databse agnostic
 df_upload = db.select('TBL_NAME', limit=None, where='WHERE x = y') # returns a pandas df
 ```
 

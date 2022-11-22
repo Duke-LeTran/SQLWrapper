@@ -5,50 +5,16 @@ from sqlwrapper.oracle import Oracle
 from sqlwrapper.sqlserver import SQLServer 
 from sqlwrapper.mariadb import MariaDB 
 import logging
+from configparser import InterpolationSyntaxError
 #import df_tools
+import sys
 import os
+import traceback
 
 log = logging.getLogger(__name__)
-# class config_reader:
-#     """
-#     Manages the config file
-#     SET-UP:
-#         * PATH
-#         * db_config.ini file
-#     """
-#     def __init__(self, opt_print=True):
-#         """Windows Config Utils, create child class as necessary"""
-#         self._init_config_path() #get setup options
-#         self.db_selected = None
-        
-#     def _init_config_path(self):
-#         """
-#         SETUP: These need to be setup once before use
-#         """
-#         self.config_looker = c
-#         self.PATH, self.FILE = self.config_looker.current
-#         self.CONFIG = self.PATH / self.FILE
 
-#     def read_config(self, db=None, opt_print=True):
-#         config = ConfigParser() #keep local
-#         path = self.PATH / self.FILE 
-#         if opt_print and db is not None:
-#             print(f'Initializing database connection using config file from {path} using [{db}].')
-#         config.read(path)
-#         return config
-        
 
-        
-#     def read_config(self, db=None):
-#         """ This function is intentonally desigend to be obfuscated"""
-#         config = self._init_config(db)
-#         if db is None: # if none, prompt for database
-#             db_menu = self._prompt_db_entry()
-#         else:
-#             db_menu = db # else, use the database provided
-#         return config[db_menu]
-
-def connect(db_entry:str=None):
+def connect(db_entry:str=None, **kwargs):
     menu = db_menu()
     db = menu.connect(db_entry)
     return db
@@ -96,24 +62,36 @@ class db_menu:
     
     def read_config(self, *args, **kwargs):
         return self._config_reader.read(*args, **kwargs)
-    
+
     def switch_config(self):
         self._config_reader.select_config()
 
 
-    def connect(self, db_entry:str=None):
+    def connect(self, db_entry:str=None, interpolate=False):
         if db_entry is None:
             db_entry = self._prompt_db_entry()
+
+        db_section = self.read_config(db_entry, 
+                                      opt_print=False,
+                                      interpolate=interpolate)
         
-        db_section = self.read_config(db_entry, opt_print=False)
         try:
             db_type=db_section['db_type'].lower()
             Database = self.map_Database[db_type]
             return Database(db_entry)
         except KeyError as e:
-            log.traceback(' Traceback '.center(80, '-'))
+            log.error(e,  exc_info=True)
+            #log.traceback(' Traceback '.center(80, '-'))
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            log.info(' exc_info '.center(80, '-'))
+            log.info(exc_type, exc_value, exc_traceback)
+            traceback_in_var = traceback.format_tb(exc_traceback)
+            log.info(' traceback_in_var '.center(80, '-'))
+            log.info(traceback_in_var)
             log.warning("No `db_type` specified in entry.")
             return None
+        except Exception as e:
+            log.error(e, exc_info=True)
         
     
     def _prompt_db_entry(self):

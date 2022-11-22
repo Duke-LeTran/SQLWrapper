@@ -54,6 +54,12 @@ class SQL: # level 0
     def open_config():
         os.startfile(PATH_TO_CONFIG / CONFIG_FILE)
 
+    def test():
+        """this will raise an error if connection has failed"""
+        with self.engine.connect() as conn:
+            pass
+
+
     def columns(self,
                 tbl_name:str,
                 verbose=False,
