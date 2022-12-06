@@ -38,7 +38,7 @@ class MariaDB(SQL): # level 1
         except AttributeError: # never successfully made an engine
             pass
     
-    def _read_config(db_entry:str, opt_print:bool):
+    def _read_config(self, db_entry:str, opt_print:bool):
         config = config_reader().read(db_entry, opt_print)
         self.db_name = config['db_name']
         self.schema_name = config['db_name']
