@@ -18,10 +18,25 @@ Research Infrastructure, IT Health Informatics, UC Davis Health
 #from sqlwrapper.config import PATH_TO_CONFIG, CONFIG_FILE
 from sqlwrapper.config import config_reader
 from sqlwrapper.dbmenu import connect, db_menu
-config = config_reader()
+from pprint import pprint
+import os
+
+config_reader = config_reader()
 menu = db_menu()
 #from sqlwrapper.config import _resolve_path_to_config, ls_path_to_config, ls_config_file
 #PATH_TO_CONFIG, CONFIG_FILE = _resolve_path_to_config(ls_path_to_config, ls_config_file)
+
+def ls():
+    return pprint(menu.entries)
+
+def entries():
+    return pprint(menu.entries)
+
+def config(open=False):
+    config_path = config_reader._config_file
+    if open:
+        os.startfile(config_path)
+    return config_path
 
 
 from sqlwrapper.prompter import Prompter

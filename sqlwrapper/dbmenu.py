@@ -13,12 +13,20 @@ import traceback
 
 log = logging.getLogger(__name__)
 
+def connect_vault():
+    """connect to vault instead"""
+    pass
 
-def connect(db_entry:str=None, **kwargs):
+def connect(db_entry:str=None, vault=False, **kwargs):
+    """
+    Pass the db config entry to connect. Use ls() or entries() if you don't
+    remember.
+    """
     menu = db_menu()
     db = menu.connect(db_entry)
+    if vault:
+        db = connect_vault()
     return db
-    
 
 class db_menu:
     def __init__(self):
