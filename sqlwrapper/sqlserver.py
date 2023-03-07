@@ -265,7 +265,7 @@ class SQLServer(SQL): # level 1
         if type(limit) is int: # LIMIT # if SELECT TOP is defined correctly as int
             sql_statement = f"SELECT TOP ({limit}) {col_names} FROM {prefix}.{tbl_name}"
         else: # else select all
-            sql_statement = f"SELECT {col_names} FROM {prefix}.{tbl_name};"
+            sql_statement = f"SELECT {col_names} FROM {prefix}.{tbl_name}"
         return sql_statement
     
     @staticmethod
@@ -307,7 +307,7 @@ class SQLServer(SQL): # level 1
         sql_statement = self._order_by(sql_statement, cols, order_by, desc)
         # LOG
         if print_bool:
-            self._save_sql_hx(sql_statement)
+            self._save_sql_hx(sql_statement + ';')
         df_output = pd.read_sql(sql_statement, self.engine)
         # convert names to capital for consistency
         #df_output.columns = [x.upper() for x in df_output.columns]
