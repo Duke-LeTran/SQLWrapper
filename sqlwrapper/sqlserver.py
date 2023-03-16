@@ -7,7 +7,7 @@ import pandas as pd
 from typing import Union
 from sqlwrapper.base import SQL
 from sqlwrapper.prompter import Prompter
-from sqlwrapper.config import config_reader
+from sqlwrapper.config import config_reader, base_config, Missing_DBCONFIG_ValueError
 from getpass import getpass
 
 # logging
@@ -16,7 +16,7 @@ log = logging.getLogger(__name__)
 # prompter
 p = Prompter()
 
-class SQLServer(SQL): # level 1
+class SQLServer(SQL, base_config): # level 1
     """
     SQL Server Database Wrapper
     Set-up: authentication config
@@ -28,91 +28,91 @@ class SQLServer(SQL): # level 1
                  opt_print=True):
         # attempt ot initizlie
         config = config_reader().read(db_entry, opt_print) # local variable not saved
-        if config is None:
-            config = db_menu.prompt_db()
+        # if config is None:
+        #     config = db_menu.prompt_db()
         #try:
         #    config = db_menu.read_config(config) #keep local
         #except KeyError:
         #    print('\nERROR: Attempted to init an Oracle db.Try again.')
         #    return
-        super(SQLServer, self).__init__(db_name=config['DATABASE'], 
+        self._save_config(config)
+        super(SQLServer, self).__init__(db_name=self._database, 
                                         schema_name=schema_name)
         self.trusted_bool = trusted
         self.engine=None
-        self._connect(config)
+        self._connect()
         self._generate_dbinfo()
-        self._save_config(config)
-
-    def __del__(self):
-        if self.engine:
-            self.engine.dispose()
-
-    def _connect(self, config):
-        self._generate_engine(config)
-        self._generate_inspector()
-        print(f'New connection successfully established to: {self.prefix}')
+        #self._save_config(config)
                 
-    def _generate_conn_string(self, config):
+    def _generate_conn_string(self):
         """
-        selects driver
+        generates conn_string, also selects driver
         """
         # if FreeTDS driver
-        if config['DRIVER'].lower() in "{freetds}":
-            return self._generate_freetds_conn_string(config)
+        if self._driver.lower() in "{freetds}":
+            return self._generate_freetds_conn_string()
         else: # if official microsoft ODBC drivers
-            return self._generate_mssql_conn_string(config)
+            return self._generate_mssql_conn_string()
 
 
-    def _generate_mssql_conn_string(self, config):
+    def _generate_mssql_conn_string(self):
         """ 
         Driver: {ODBC Driver 17 for SQL Server}: 
         * Generates conn_string using encoded odbc_connect method
         * supports windows auth
         """
         try: # sql auth
-            conn_string = (f"DRIVER={config['DRIVER']};" \
-                               f"SERVER={config['SERVER']};" \
-                               f"DATABASE={config['DATABASE']};" \
-                               f"UID={config['hello']};" \
-                               f"PWD={config['world']}")
-                               #f"TRUSTED_CONNECTION={self.trusted_bool};")
-        except KeyError as e: # windows auth
+            conn_string = (f"DRIVER={self._driver};" \
+                               f"SERVER={self._hostname};" \
+                               f"DATABASE={self._database};" \
+                               f"UID={self._username};" \
+                               f"PWD={self._pw}")
+        except Missing_DBCONFIG_ValueError as e: #windows auth
             log.warning("Attemping to connect with Windows Auth...")
-            conn_string = (f"DRIVER={config['DRIVER']};" \
-                                f"SERVER={config['SERVER']};" \
-                                f"DATABASE={config['DATABASE']};" \
-                                f"TRUSTED_CONNECTION={self.trusted_bool};")
-                               #f"UID=user;" \ # MUST delete trusted connection
-                               #f"PWD=password"
+            conn_string = (f"DRIVER={self._driver};" \
+                           f"SERVER={self._server};" \
+                           f"DATABASE={self._database};" \
+                           f"TRUSTED_CONNECTION={self.trusted_bool};")
         encoded_url_string = urllib.parse.quote_plus(conn_string)
         return f'mssql+pyodbc:///?odbc_connect={encoded_url_string}'
 
-    def _generate_freetds_conn_string(self, config):
+    def _generate_freetds_conn_string(self):
         """
         Driver: FreeTDS
         """
         from sqlalchemy.engine import URL
         from getpass import getpass
 
+        # conn_string = URL.create(
+        #     "mssql+pyodbc",
+        #     username=config['hello'],
+        #     password=getpass(),
+        #     host=config['SERVER'],
+        #     port=config['PORT'],
+        #     database=config['DATABASE'],
+        #     query={
+        #         "driver": "FreeTDS", # this hard-coded for standarization
+        #     },
+        # )
         conn_string = URL.create(
             "mssql+pyodbc",
-            username=config['hello'],
+            username=self._hello,
             password=getpass(),
-            host=config['SERVER'],
-            port=config['PORT'],
-            database=config['DATABASE'],
+            host=self._hostname,
+            port=self._port,
+            database=self._database,
             query={
-                "driver": "FreeTDS", # this hard-coded for standarization
+                "driver": "FreeTDS", # this hard-coded
             },
         )
         return conn_string
 
-    def _generate_engine(self, config):
+    def _generate_engine(self):
         """
         https://docs.sqlalchemy.org/en/20/dialects/mssql.html
         https://stackoverflow.com/a/48861231/9335288
         """
-        conn_string = self._generate_conn_string(config)
+        conn_string = self._generate_conn_string()
         try:
             self.engine = create_engine(conn_string, fast_executemany=True)
         except Exception as e:
@@ -121,6 +121,8 @@ class SQLServer(SQL): # level 1
         except Exception as e:
             log.error(e)
             raise
+        finally:
+            self._test_connection(self.prefix)
 
     def _generate_inspector(self):
         self.inspector = inspect(self.engine)
@@ -131,14 +133,14 @@ class SQLServer(SQL): # level 1
     
     def _reconnect(self):
         self.engine.dispose()
-        self.engine = None
-        config = self._config
-        conn_string = (f"DRIVER={config['DRIVER']};" \
-                               f"SERVER={config['SERVER']};" \
-                               f"DATABASE={config['DATABASE']};" \
-                               f"UID={config['hello']};" \
-                               f"PWD={config['world']}")
-        self.encoded_url_string = urllib.parse.quote_plus(conn_string)
+        #self.engine = None
+        # config = self._config
+        # conn_string = (f"DRIVER={config['DRIVER']};" \
+        #                        f"SERVER={config['SERVER']};" \
+        #                        f"DATABASE={config['DATABASE']};" \
+        #                        f"UID={config['hello']};" \
+        #                        f"PWD={config['world']}")
+        # self.encoded_url_string = urllib.parse.quote_plus(conn_string)
         self._flush()
         self._generate_engine()
         self._generate_inspector()
@@ -206,28 +208,6 @@ class SQLServer(SQL): # level 1
                          f"    INFORMATION_SCHEMA.COLUMNS;")
             self.df_info = pd.read_sql(sql_short, self.engine)
             self.df_info_Long = pd.read_sql(sql_long, self.engine)
-
-    # def update_conn(self):
-    #     """
-    #     Updates the connection. Things to change:
-    #         self.config['SERVER']
-    #         self.config['DATABASE']
-    #         self.config['world']
-    #         self.schema_name
-    #     """
-    #     self.conn.close()
-    #     #reconnect
-    #     self._connect(self.config)
-    #     self._generate_dbinfo()
-    #     self._save_config(self.config)
-        
-    # def update_df(self, df_input, tbl_name):
-    #     """update dataframe to database"""
-    #     if tbl_name in set(self.info()['tbl_name']): #if df is a tbl in db
-    #         if p.prompt_confirmation('Table already exists. Confirm overwrite?'):
-    #             x = 'replace'
-    #     df_input.to_sql(tbl_name, self.engine, if_exists=x)
-    #     self._generate_dbinfo #update info
 
     def info(self, long_bool=False):
         if long_bool:

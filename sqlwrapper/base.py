@@ -39,6 +39,19 @@ class SQL: # level 0
         # self.msg_inaction = "No action taken. Remember to rollback or commit."
         self.sqlHx = pd.Series(dtype='object')
         self.p = Prompter()
+    
+    def _connect(self):
+        """connect to database"""
+        self._generate_engine()
+        self._generate_inspector()
+    
+    def _test_connection(self, prefix=None):
+        with self.engine.connect() as conn: # if it works, it will pass
+            if prefix is not None:
+                print(f'✅ New connection successfully established: {prefix}')
+            else:
+                print(f'✅ New connection successfully established.')
+            return 1
 
     def _generate_inspector(self):
         from sqlalchemy import inspect
@@ -53,11 +66,6 @@ class SQL: # level 0
     @staticmethod    
     def open_config():
         os.startfile(PATH_TO_CONFIG / CONFIG_FILE)
-
-    def test():
-        """this will raise an error if connection has failed"""
-        with self.engine.connect() as conn:
-            pass
 
 
     def columns(self,
@@ -221,4 +229,5 @@ class SQL: # level 0
             log.error(error)
         except Exception as error:
             log.warning(error)
+
 

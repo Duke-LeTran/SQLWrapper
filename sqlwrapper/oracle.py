@@ -9,7 +9,7 @@ import cx_Oracle
 from cx_Oracle import InterfaceError
 #from sqlwrapper.dbmenu import db_menu
 from sqlwrapper.prompter import Prompter
-from sqlwrapper.config import config_reader
+from sqlwrapper.config import config_reader, base_config, Missing_DBCONFIG_ValueError
 from sqlwrapper.base import SQL
 from typing import Union
 
@@ -25,7 +25,7 @@ class FailedInsertMissingTable(Error):
     """Raised when attemps to insert pandas df but table is not defined"""
     pass
 
-class Oracle(SQL): # level 1
+class Oracle(SQL, base_config): # level 1
     """
     Oracle Database Wrapper
     Things to note in Oracle:
@@ -41,9 +41,10 @@ class Oracle(SQL): # level 1
     """
     def __init__(self, db_entry='Velos', opt_print=True): #defaults to Velos
         config = config_reader().read(db_entry, opt_print) # local variable not saved
-        super(Oracle, self).__init__(schema_name=config['hello']) # username is schema
-        self._connect(config)
         self._save_config(config)
+        super(Oracle, self).__init__(schema_name=self._username) # username is schema
+        self._connect()
+        #self._save_config(config)
 
     def __del__(self):
         try:
@@ -55,44 +56,34 @@ class Oracle(SQL): # level 1
         except AttributeError: #never sucessfully made a connection :'(
             pass
     
-    def _generate_engine(self, config):
+    def _generate_engine(self) -> None:
         """ generate engine"""
          # A. generate using string method
         try:
-            self._generate_engine_dsn_method(config) 
+            self._generate_engine_dsn_method() 
         # B. generate using tnsnames method
         except sqlalchemy.exc.DatabaseError: 
-            self._generate_engine_tns_method(config)
-        except Exception as error:
-            print(f"Failed to connect to Oracle database. Error: {error}")
+            self._generate_engine_tns_method()
+        finally:
+            self._test_connection(self._username)
+    
 
-    def _generate_engine_dsn_method(self, config):
+    def _generate_engine_dsn_method(self) -> None:
         """ A. generate using string method"""
-        dsn = cx_Oracle.makedsn(config['hostname'], config['port'], service_name=config['service_name'])
+        dsn = cx_Oracle.makedsn(self._hostname, self._port, service_name=self._service_name)
         self.engine = sqlalchemy.create_engine(\
-            f"oracle+cx_oracle://{config['hello']}:{config['world']}@{dsn}",
+            f"oracle+cx_oracle://{self._username}:{self._pw}@{dsn}",
             connect_args={"encoding":"UTF-8"},
             max_identifier_length=128) # this removes warnings
-        with self.engine.connect() as conn: # if it works, it will pass
-            pass 
-
-    def _generate_engine_tns_method(self, config):
+        
+        
+    def _generate_engine_tns_method(self) -> None:
         """ B. generate using tnsnames method"""
         self.engine = sqlalchemy.create_engine(\
-            f"oracle+cx_oracle://{config['hello']}:{config['world']}@{config['tns_alias']}",
+            f"oracle+cx_oracle://{self._username}:{self._pw}@{self._tns_alias}",
             connect_args={"encoding":"UTF-8"},
             max_identifier_length=128) # this removes warnings
-        with self.engine.connect() as conn: # if it works, it will pass
-            pass 
 
-    def _connect(self, config):
-        try:
-            self._generate_engine(config)
-            self._generate_inspector()
-            #self._generate_connection(config)
-        #self._generate_cursor()
-        except sqlalchemy.exc.DatabaseError as error:
-            print(error)
     
     # def describe(self) -> pd.DataFrame:
     # """ DEPRECREATED: Too slow"""
@@ -174,8 +165,8 @@ class Oracle(SQL): # level 1
 
     def scope(self):
         print('[Current Scope]\n',
-              'Server:', self._config['hostname'].split('.')[0], "#aka hostname", '\n',
-              'Database:', self._config['service_name'].split('.')[0], '\n', 
+              'Server:', self._self._hostname.split('.')[0], "#aka hostname", '\n',
+              'Database:', self._service_name.split('.')[0], '\n', 
               'Schema/User:', self.schema_name, '\n')
     
     def version(self):

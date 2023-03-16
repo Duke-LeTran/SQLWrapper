@@ -4,6 +4,8 @@ from sqlwrapper.config import config_reader
 from sqlwrapper.oracle import Oracle
 from sqlwrapper.sqlserver import SQLServer 
 from sqlwrapper.mariadb import MariaDB 
+from dotenv import load_dotenv
+from pathlib import Path
 import logging
 from configparser import InterpolationSyntaxError
 #import df_tools
@@ -14,19 +16,26 @@ import traceback
 log = logging.getLogger(__name__)
 
 def connect_vault():
-    """connect to vault instead"""
-    pass
+    """ !TO-DO: connect to vault instead"""
+    load_dotenv(Path.cwd() / '.env')
+    vault_url = os.getenv('')
+    vault_token = os.getenv('')
+    return False
+
+def connect_db_config(db_entry):
+    """connect via db_config.ini file"""
+    menu = db_menu()
+    return menu.connect(db_entry)
 
 def connect(db_entry:str=None, vault=False, **kwargs):
     """
     Pass the db config entry to connect. Use ls() or entries() if you don't
     remember.
     """
-    menu = db_menu()
-    db = menu.connect(db_entry)
     if vault:
-        db = connect_vault()
-    return db
+        return connect_vault()
+    else:
+        return connect_db_config(db_entry)
 
 class db_menu:
     def __init__(self):
@@ -62,7 +71,8 @@ class db_menu:
         return {
             'oracle' : Oracle,
             'sqlserver' : SQLServer,
-            'mariadb' : MariaDB
+            'mariadb' : MariaDB,
+            'mysql' : MariaDB
         }
     
     def append_path(self, path):

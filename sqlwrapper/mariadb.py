@@ -8,14 +8,14 @@ import pandas as pd
 from sqlwrapper.prompter import Prompter
 from sqlwrapper.base import SQL
 # from sqlwrapper.config import PATH_TO_CONFIG, CONFIG_FILE
-from sqlwrapper.config import config_reader
+from sqlwrapper.config import config_reader, base_config, Missing_DBCONFIG_ValueError
 
 log = logging.getLogger(__name__)
 
 p = Prompter()
 
 
-class MariaDB(SQL): # level 1
+class MariaDB(SQL, base_config): # level 1
     """
     MariaDB Database Wrapper
     Things to note in Oracle:
@@ -27,35 +27,28 @@ class MariaDB(SQL): # level 1
     """
     def __init__(self, db_entry='redcap', opt_print=True): 
         config = self._read_config(db_entry, opt_print)
-        super(MariaDB, self).__init__(schema_name=config['hello']) # username is schema
-        self._generate_engine(config)
-        self._generate_inspector()
         self._save_config(config)
-
-    def __del__(self):
-        try:
-            self.engine.dispose()
-        except AttributeError: # never successfully made an engine
-            pass
+        super(MariaDB, self).__init__(schema_name=self._username) # username is schema
+        self._connect()
     
     def _read_config(self, db_entry:str, opt_print:bool):
         config = config_reader().read(db_entry, opt_print)
-        self.db_name = config['db_name']
-        self.schema_name = config['db_name']
         return config
 
-    def _generate_conn_string(self, config) -> str:
+    def _generate_conn_string(self) -> str:
         """generate connection string from config"""
-        return f"{config['hello']}:{config['world']}@{config['hostname']}:{config['port']}/{config['db_name']}"
+        return f"{self._username}:{self._pw}@{self._hostname}:{self._port}/{self._database}"
     
-    def _generate_engine(self, config):
+    def _generate_engine(self):
         """ generate engine"""
          # A. generate using string method
         try:
             self.engine = sqlalchemy.create_engine(f"mariadb+pymysql://" \
-                + self._generate_conn_string(config))
+                + self._generate_conn_string())
         except Exception as error:
             log.error(error)
+        finally:
+            self._test_connection(self._database)
     
     def _generate_inspector(self):
         from sqlalchemy import inspect
@@ -67,7 +60,7 @@ class MariaDB(SQL): # level 1
 
     def tables(self):
         try:
-            return list(self.read_sql('SHOW TABLES;')[f'Tables_in_{self.db_name}'])
+            return list(self.read_sql('SHOW TABLES;')[f'Tables_in_{self._database}'])
         except Exception as error:
             log.error(error)
 
@@ -89,7 +82,6 @@ class MariaDB(SQL): # level 1
                tbl_name:str,
                cols:Union[list, str]='*',
                schema:str=None,
-               db_link:str=None,
                print_bool:bool=True,
                limit:int=10, # default to 10
                where:str=None,
@@ -105,6 +97,7 @@ class MariaDB(SQL): # level 1
         #SELECT
         col_names = self._select_cols(cols) 
         # SCHEMA
+        ## !TO-DO?
         # SQL SKELETON
         sql_statement = f"SELECT {col_names} FROM {tbl_name.lower()}"
         # WHERE
@@ -130,7 +123,7 @@ class MariaDB(SQL): # level 1
         """
         # set defaults
         if schema is None:
-            schema = self.schema_name
+            schema = self._database
         if engine is None:
             engine = self.engine
         
