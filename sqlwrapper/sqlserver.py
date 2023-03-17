@@ -70,7 +70,7 @@ class SQLServer(SQL, base_config): # level 1
         except Missing_DBCONFIG_ValueError as e: #windows auth
             log.warning("Attemping to connect with Windows Auth...")
             conn_string = (f"DRIVER={self._driver};" \
-                           f"SERVER={self._server};" \
+                           f"SERVER={self._hostname};" \
                            f"DATABASE={self._database};" \
                            f"TRUSTED_CONNECTION={self.trusted_bool};")
         encoded_url_string = urllib.parse.quote_plus(conn_string)
