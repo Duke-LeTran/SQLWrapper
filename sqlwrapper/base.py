@@ -154,6 +154,13 @@ class SQL: # level 0
             return pd.read_sql(sql, self.engine)
         except exc.ResourceClosedError as error:
             pass # if no rows returned
+        except AttributeError:
+            # AttributeError: 'OptionEngine' object has no attribute 'execute'
+            # breaking error from sqlalchemy 2.0.0+
+            from sqlalchemy import text
+            with self.engine.connect() as conn:
+                return pd.read_sql(text(sql), conn)
+
 
     def tables(self):
         try:
