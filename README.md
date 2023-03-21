@@ -197,7 +197,9 @@ if you're already familiar with that framework, you have access too.
 ## A. Engine
 ```python
 # sqlalchemy engine available within object
-pd.read_sql('SELECT * FROM TBL_NAME', db.engine)
+from sqlalchemy import text
+query = text('SELECT * FROM TBL_NAME')
+db.read_sql(query, db.engine)
 ```
 
 ## B. Inspector
@@ -231,6 +233,6 @@ TO-DO: Generate guides or provide Dockerfile
 
 # III. ChangeLog
 0.2.8 - Added vault support
-0.2.7 - Wrote synonyms in `parameters.py`; added sqlalchemy 2.0+ breaking changes fixes to `self.read_sql` in `base.py`
+0.2.7 - Added synonyms in `parameters.py`; added patches to address sqlalchemy 2.0+ breaking changes; use `self.read_sql` in `base.py` instead of `pd.read_sql()`
 0.2.5 - 
 0.2.4 - added new features, such as `connect()`, `ls()`, `entries()`, `config(open=False)` 
