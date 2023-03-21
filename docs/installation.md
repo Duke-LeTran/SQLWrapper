@@ -3,7 +3,7 @@
 ## A. pipenv
 `pipenv install -i 'https://repos.ri.ucdavis.edu' sqlwrapper`
 
-Alternatively, you may edit your Pipefile directly use `pipenv install`
+Alternatively, you may edit your Pipefile directly, then use `pipenv install`.
 ```
 ################################################################################
 # PIPFILE EXAMPLE
