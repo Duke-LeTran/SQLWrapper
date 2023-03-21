@@ -8,7 +8,8 @@ DESCRIPTION:
 
 SETUP:
     1. Place and edit config files in ~/.mypylib/ 
-    2. Run ```chmod 600 ~/.mypylib/db_config.ini``` to protect the files
+    2. `chmod 600 ~/.mypylib/db_config.ini` to protect the files
+    3. `chmod 700 ~/.mypylib` to protect folder
 
 Duke LeTran <duke.letran@gmail.com; daletran@ucdavis.edu>
 Research Infrastructure, IT Health Informatics, UC Davis Health

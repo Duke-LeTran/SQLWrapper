@@ -12,8 +12,11 @@ but may require further development.
 See [Installation](docs/installation.md).
 
 Be sure to complete one of the following setup:
-* [Usage with vault](docs/setup_db_config.md)
-* [Usage with db_config.ini](docs/setup_vault.md)
+* [Usage with vault](docs/setup_vault.md)
+* [Usage with db_config.ini](docs/setup_db_config.md)
+
+Use the following parameters in your config or vault secrets: [parameters](docs/parameters.md)
+
 
 
 
