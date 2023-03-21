@@ -20,12 +20,17 @@ log = logging.getLogger(__name__)
 # DB_MENU
 ################################################################################
 class Database:
-    """generic database for ocnnecting to the types available"""
+    """generic database for connecting to the types available"""
     def __init__(self, db_entry:str, db_section:SectionProxy):
-        self.db_entry=db_entry,
-        self.db_section=db_section,
+        self.db_entry=db_entry
         self.db_type=db_section['db_type'].lower()
-
+        self.db_section=db_section
+    
+    def _debug(self):
+        print('db_entry: ', self.db_entry)
+        print('db_type: ', self.db_section['db_type'].lower())
+        print('db_section: ', self.db_section)
+        
     @property
     def map_Database(self):
         return {
@@ -35,14 +40,14 @@ class Database:
             'mysql' : MariaDB
         }
     
-    def connect(self):
+    def connect(self, debug=False):
         """returns the db object"""
-        self.map_Database[self.db_entry]
+        if debug:
+            self._debug()
         Database = self.map_Database[self.db_type]
         return Database(self.db_entry, db_section=self.db_section)
     
-    
-class db_menu:
+class db_menu_config:
     def __init__(self):
         self._config_reader = config_reader()
     
@@ -71,26 +76,20 @@ class db_menu:
     def df_config(self):
         return self._config_reader.df_config
     
-    @property
-    def map_Database(self):
-        return {
-            'oracle' : Oracle,
-            'sqlserver' : SQLServer,
-            'mariadb' : MariaDB,
-            'mysql' : MariaDB
-        }
-    
-    def append_path(self, path):
-        self._config_reader.append_path(path)
-    
     def read_config(self, *args, **kwargs):
         """This is a proxy function to the CONFIG_READER object"""
         return self._config_reader.read(*args, **kwargs)
-
+    
+    def append_path(self, path):
+        self._config_reader.append_path(path)
 
     def switch_config(self):
         self._config_reader.select_config()
-
+    
+    
+class db_menu(db_menu_config):
+    def __init__(self):
+        super().__init__()
 
     def connect(self, 
                 db_entry:str=None,
@@ -128,9 +127,7 @@ class db_menu:
     def _connect(self, db_entry:str, db_section:SectionProxy):
         
         try:
-            db_type=db_section['db_type'].lower()
-            Database = self.map_Database[db_type]
-            return Database(db_entry, db_section=db_section)
+            return Database(db_entry, db_section).connect()
         except KeyError as e:
             log.error(e,  exc_info=True)
             #log.traceback(' Traceback '.center(80, '-'))
