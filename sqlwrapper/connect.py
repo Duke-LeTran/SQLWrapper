@@ -14,9 +14,13 @@ log = logging.getLogger(__name__)
 # db = sqlwrapper.connect
 ################################################################################
 def connect_vault(sec_path='rifr/ProfilesProd',
-                  db_entry:str=None):
-    """ !TO-DO: connect to vault instead"""
-    load_dotenv(Path.cwd() / '.env')
+                  db_entry:str=None,
+                  env_path=Path.cwd() / '.env'):
+    """ 
+    Vault Support
+    * default path for env path is current directory
+    """
+    load_dotenv(env_path)
     #load_dotenv(Path.home() / '.mypylib' / '.env')
     vault_client = hvac.Client(url=os.environ.get('VAULT_SERVER'),
                                token=os.environ.get('VAULT_TOKEN'))
