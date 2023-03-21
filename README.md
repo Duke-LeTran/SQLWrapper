@@ -15,9 +15,10 @@ Be sure to complete one of the following setup:
 * [Usage with vault](docs/setup_db_config.md)
 * [Usage with db_config.ini](docs/setup_vault.md)
 
-![usage_vault](imgs/usage_vault.png)
+
 
 # 01. Quickstart
+![usage_vault](imgs/usage_vault.png)
 ```python
 import pandas as pd
 import numpy as np
@@ -34,8 +35,7 @@ db = sqlwrapper.connect(sec_path=sec_path)
 Then, test your connection with `db.tables()`. This will simply list all the
 tables in the database.
 
-At this point, a few things you may use, especially if you're familiar with
-`pandas` and `sqlalchemy`:
+A few familiar `pandas` and `sqlalchemy`-esque functions available:
 * `db.read_sql('SELECT * FROM tbl_name')`
 * `db.columns('tbl_name')` - returns pandas columns of table
 * `db.select('tbl_name', limit=None)` - selects table with no limit; default is 10
