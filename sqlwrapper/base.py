@@ -245,5 +245,8 @@ class SQL: # level 0
             log.error(error)
         except Exception as error:
             log.warning(error)
+        except ImportError as error:
+            # python interpreter is shutting down.
+            log.warning(error)
 
 
