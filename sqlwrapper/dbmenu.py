@@ -106,9 +106,6 @@ class db_menu:
     def _connect(self, db_entry:str, db_section:SectionProxy):
         
         try:
-            print(db_entry)
-            print(db_section)
-            print(db_section.values())
             db_type=db_section['db_type'].lower()
             Database = self.map_Database[db_type]
             return Database(db_entry, db_section=db_section)

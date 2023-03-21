@@ -204,7 +204,7 @@ class config_reader(config_looker):
         if opt_print:
             msg = f'Initializing database connection '
             if vault:
-                msg += f"using vault {sec_path}."
+                msg += f"using vault: {sec_path}."
             else:
                 msg += f'from config file {self.CONFIG} using [{db_entry}].'
             print(msg)
