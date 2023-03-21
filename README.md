@@ -8,79 +8,55 @@ of connection strings to be database agnostic. The Oracle, SQLServer, and MariaD
 implementations are the most robust; additional database connections exist 
 but may require further development.
 
+# 00. Installation
+See ['Installation']('docs/installation.md').
 
-# 00. Setup
-```bash
-git clone git@github.com:Duke-LeTran/SQLWrapper.git ~/path_to_pythonpath/SQLWrapper
-```
-
-Add this line below to your `~/.bashrc` file.
-
-```bash
-export PYTHONPATH="~/path_to_pythonpath/SQLWrapper:$PYTHONPATH"
-```
-
-Set up your config files and ensure that the files are permissions protected.
-To change from default, edit file `sqlwrapper/config.py`
-
-```bash
-
-mkdir ~/.mypylib
-cp -r config ~/.mypylib
-# rename
-mv ~/.mypylib.dbconfig.ini.example ~/.mypylib.dbconfig.ini
-# edit your config entries, i.e., db_config.ini
-chmod 700 ~/.mypylib/* 
-chmod 600 ~/.mypylib/db_config.ini
-```
-
-Now you should be able to import SQLWrapper from anywhere.
-        
-# 01. Sample setup of config file 
-This is your config file. Entries will need to be edited to reflect your 
-personal databases. See a few example entries below. My prefered location to 
-place this file is: `$HOME/.mypylib/db_config.ini`
-
-```ini
-# I. Oracle
-[ORACLE_DB_ENTRY] 
-username = dletran
-password = fakepw123
-db_name = NameOfDatabase
-hostname = HostName
-service_name = ServiceName
-port = 1521
-
-# II. SQL SERVER (windows auth)
-[SQLSERVER_DB_ENTRY]
-username = dletran
-DRIVER = {ODBC Driver 17 for SQL Server}
-SERVER = NameOfServer
-DATABASE = NameOfDatabase
-```
+Be sure to complete one of the following setup:
+* ['Usage with vault'](docs/setup_db_config.md').
+* ['Usage with db_config.ini']('docs/setup_vault.md')
 
 
-# 02. Tutorial
-
-## A. Connect and initialize
+# 01. Quickstart
 ```python
 import pandas as pd
 import numpy as np
 import sqlwrapper
-from sqlwrapper import Oracle, SQLServer, MariaDB
 
-# Two methods: initalize the database conneciton object
+# Four methods: initalize the database conneciton object
+db = sqlwrapper.connect() # this will generate a menu from your db_config file
 db = sqlwrapper.connect('ORACLE_DB_ENTRY')
-db = Oracle('ORACLE_DB_ENTRY')
-
-# If you don't remember, you can do
+## via vault, assumes .env file is in the current directory
+sec_path = 'rifr/ProfilesProd'
+db = sqlwrapper.connect(sec_path=sec_path)
 ```
 
+Then, test your connection with `db.tables()`. This will simply list all the
+tables in the database.
+
+At this point, a few things you may use, especially if you're familiar with
+`pandas` and `sqlalchemy`:
+* `db.read_sql('SELECT * FROM tbl_name')`
+* `db.columns('tbl_name')` - returns pandas columns of table
+* `db.select('tbl_name', limit=None)` - selects table with no limit; default is 10
+* `db.tables()` - returns list of tables
+* `db.views()` - returns list of views
+* `db.engine` - `sqlalchemy` object engine
+* `db.inspector` `sqlalchemy` object inspector
+
+Some additional ideas of usage:
+
+```
+with db.engine.connect() as conn:
+    conn.execute(query)
+```
+
+
+# 02. Tutorial
 # I. DQL
 ## A. Select
 ```python
 # note, limit flag is databse agnostic
-df_upload = db.select('TBL_NAME', limit=None, where='WHERE x = y') # returns a pandas df
+df_upload = db.select('TBL_NAME', limit=None, where='x = y') # returns a pandas df
 ```
 
 ## B. Database inspection: Tables
@@ -147,7 +123,7 @@ for idx, row in df.iterrows():
 ```
 ## C. Truncate
 ```python
-# quickly trucnate a table of data
+# quickly truncate a table of data
 db.truncate('API_TABLE', answer='yes')
 ```
 
