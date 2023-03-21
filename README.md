@@ -141,16 +141,32 @@ db.drop('API_TABLE', answer='yes')
 
 ## A. Microsoft SQLServer
 
-Switch database, disposes engine, updates engine, updates object's variables
+This function allow you to switch databases, and it auto-managers disposing 
+the engine, updates engine, and updates object's variables
 
 ```python
-db.use('COVID_LDS_DLETRAN')
+In [2]: db.scope()
+[Current Scope]
+ Server: HSDPATHSQL01
+ Database: UCH_COVID19_LDS
+ Schema: dbo
 
+In [3]: db.use('COVID_LDS_CORE_DEV')
+Current database: UCH_COVID19_LDS.dbo
+Change to database: COVID_LDS_CORE_DEV.dbo
+Are you sure you want to change databases? (y/n) >> y
+✅ New connection successfully established: COVID_LDS_CORE_DEV.dbo
+
+In [4]: db.scope()
+[Current Scope]
+ Server: HSDPATHSQL01
+ Database: COVID_LDS_CORE_DEV
+ Schema: dbo
 ```
 
 ## B. Oracle
 
-Not specific, but significiant performance enhancements.
+Not specific, but significiant performance improvement.
 
 ```python
 db.insert(df, 'TBL_NAME')
@@ -191,21 +207,6 @@ For more information on the inspector, see [here](https://docs.sqlalchemy.org/en
 db.inspector.get_pk_constraint('TBL_NAME')
 db.inspector.get_columns('TBL_NAME')
 db.inspector.get_pk_constraint('TBL_NAME')
-```
-
-## C. cx_Oracle connections and cursors
-```python
-# if you need a cx_Oracle connection
-conn, cursor = db._generate_conn_cursor()
-
-try:
-    cursor.execute('')
-    conn.commit()
-except Exception as e:
-    log.error(e)
-finally:
-    conn.close()
-    cursor.close()
 ```
 
 
