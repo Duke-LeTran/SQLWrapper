@@ -117,7 +117,8 @@ class MariaDB(SQL, parameters): # level 1
         # LOG
         if print_bool:
             self._save_sql_hx(sql_statement + ';')
-        df_output = pd.read_sql(sql_statement, self.engine)
+        #df_output = pd.read_sql(sql_statement, self.engine)
+        df_output = self.read_sql(sql_statement)
         # convert names to capital for consistency
         df_output.columns = [x.upper() for x in df_output.columns]
         return df_output

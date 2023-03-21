@@ -203,8 +203,8 @@ class SQLServer(SQL, parameters): # level 1
                          f"       COLUMN_NAME as col_name " \
                          f"FROM " \
                          f"    INFORMATION_SCHEMA.COLUMNS;")
-            self.df_info = pd.read_sql(sql_short, self.engine)
-            self.df_info_Long = pd.read_sql(sql_long, self.engine)
+            self.df_info = self.read_sql(sql_short)#pd.read_sql(sql_short, self.engine)
+            self.df_info_Long = self.read_sql(sql_long)#pd.read_sql(sql_long, self.engine)
 
     def info(self, long_bool=False):
         if long_bool:
@@ -223,7 +223,8 @@ class SQLServer(SQL, parameters): # level 1
         # parse for number of rows
         for tbl_name in df_output['tbl_name']:
             sql_statement = f"SELECT COUNT(*) FROM {tbl_name}"
-            int_row = pd.read_sql(sql_statement, self.engine).iloc[0,0]
+            #int_row = pd.read_sql(sql_statement, self.engine).iloc[0,0]
+            int_row = self.read_sql(sql_statement).iloc[0,0]
             #print(tbl_name, ', row_count:', int_row)
             ls_rowcount.append(int_row)
             
@@ -255,8 +256,9 @@ class SQLServer(SQL, parameters): # level 1
         prefix = f'{database}.{prefix}'
         return prefix
 
-    def count(tbl_name):
-        return pd.read_sql("SELECT COUNT(*) FROM {tbl_name}.")
+    def count(self, tbl_name):
+        #return pd.read_sql("SELECT COUNT(*) FROM {tbl_name}.")
+        return self.read_sql("SELECT COUNT(*) FROM {tbl_name}.")
     
     def select(self, 
                tbl_name:str,
@@ -285,7 +287,8 @@ class SQLServer(SQL, parameters): # level 1
         # LOG
         if print_bool:
             self._save_sql_hx(sql_statement + ';')
-        df_output = pd.read_sql(sql_statement, self.engine)
+        #df_output = pd.read_sql(sql_statement, self.engine)
+        df_output = self.read_sql(sql_statement)#, self.engine)
         # convert names to capital for consistency
         #df_output.columns = [x.upper() for x in df_output.columns]
         return df_output

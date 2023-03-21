@@ -150,7 +150,8 @@ class Oracle(SQL, parameters): # level 1
                          f'ORDER BY ' \
                          f'    username')
         print(self.readify_sql(sql_statement))
-        return pd.read_sql(self.readify_sql(sql_statement), self.engine)
+        return self.read_sql(self.readify_sql(sql_statement))
+        #return pd.read_sql(self.readify_sql(sql_statement), self.engine)
     
     def columns(self,
                 tbl_name:str,
