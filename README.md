@@ -215,8 +215,6 @@ finally:
 * add mariadb.insert() support # executemany
 * add Dockerfile or guide on installing database drivers
 * add support for DSN 
-* add support for Vault authentication
-* add support for `.env` files
 
 # II. Notes on Database drivers
 
@@ -226,3 +224,9 @@ You must ensure that all your Oracle drivers are setup properly.
 * How-To: connect to an Oracle Database using python3.6+ and cx_Oracle
 
 TO-DO: Generate guides or provide Dockerfile
+
+# III. ChangeLog
+0.2.8 - Added vault support
+0.2.7 - Wrote synonyms in `parameters.py`; added sqlalchemy 2.0+ breaking changes fixes to `self.read_sql` in `base.py`
+0.2.5 - 
+0.2.4 - added new features, such as `connect()`, `ls()`, `entries()`, `config(open=False)` 
