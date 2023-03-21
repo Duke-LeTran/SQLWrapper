@@ -1,33 +1,8 @@
 # Parameters
-These are a list of paramters can be synonyms.
+These are a list of parameters in the config file or Vault secrets can be 
+synonymous with one another.
 
-## A. username
-* username
-* hello (deprecated, but kept for backwards compatability)
-
-## B. password
-* password
-* world (deprecated, but kept for backwards compatability)
-
-## C. hostname
-* hostname
-* server
-
-## D. database
-* database
-* db_name
-
-## E. service_name
-* service_name
-* servicename
-
-## F. Other parameters with no synonyms
-* port
-* driver
-* tns_alias
-
-# Table - Parameters
-parameter | Synonym
+Parameter | Synonym
 :----- | :-----
 A. username | username, hello (deprecated, but kept for backwards compatability)
 B. password | password, world (deprecated, but kept for backwards compatability)
