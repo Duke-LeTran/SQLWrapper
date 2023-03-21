@@ -9,13 +9,13 @@ implementations are the most robust; additional database connections exist
 but may require further development.
 
 # 00. Installation
-See !['Installation']('./docs/installation.md').
+See [Installation](docs/installation.md).
 
 Be sure to complete one of the following setup:
-* !['Usage with vault'](./docs/setup_db_config.md')
-* !['Usage with db_config.ini']('./docs/setup_vault.md')
+* [Usage with vault](docs/setup_db_config.md)
+* [Usage with db_config.ini](docs/setup_vault.md)
 
-![usage_vault]('./imgs/usage_vault.png')
+![usage_vault](imgs/usage_vault.png)
 
 # 01. Quickstart
 ```python

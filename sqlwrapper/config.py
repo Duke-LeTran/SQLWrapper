@@ -220,8 +220,6 @@ class config_reader(config_looker):
             vault=False,
             map_secrets:dict=None):
         # if verbose 
-        
-
         # use regular ConfigParser with interpolation
         if interpolate:
             config_result = self.config

@@ -19,6 +19,29 @@ log = logging.getLogger(__name__)
 ################################################################################
 # DB_MENU
 ################################################################################
+class Database:
+    """generic database for ocnnecting to the types available"""
+    def __init__(self, db_entry:str, db_section:SectionProxy):
+        self.db_entry=db_entry,
+        self.db_section=db_section,
+        self.db_type=db_section['db_type'].lower()
+
+    @property
+    def map_Database(self):
+        return {
+            'oracle' : Oracle,
+            'sqlserver' : SQLServer,
+            'mariadb' : MariaDB,
+            'mysql' : MariaDB
+        }
+    
+    def connect(self):
+        """returns the db object"""
+        self.map_Database[self.db_entry]
+        Database = self.map_Database[self.db_type]
+        return Database(self.db_entry, db_section=self.db_section)
+    
+    
 class db_menu:
     def __init__(self):
         self._config_reader = config_reader()
@@ -61,11 +84,10 @@ class db_menu:
         self._config_reader.append_path(path)
     
     def read_config(self, *args, **kwargs):
+        """This is a proxy function to the CONFIG_READER object"""
         return self._config_reader.read(*args, **kwargs)
 
-    # def read_vault(self, *args, **kwargs):
-    #     return self._config_reader._read_vault(*args, **kwargs)
-    
+
     def switch_config(self):
         self._config_reader.select_config()
 
