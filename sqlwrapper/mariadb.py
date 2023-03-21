@@ -8,14 +8,17 @@ import pandas as pd
 from sqlwrapper.prompter import Prompter
 from sqlwrapper.base import SQL
 # from sqlwrapper.config import PATH_TO_CONFIG, CONFIG_FILE
-from sqlwrapper.config import config_reader, base_config, Missing_DBCONFIG_ValueError
+from sqlwrapper.config import config_reader
+from sqlwrapper.parameters import parameters, Missing_DBCONFIG_ValueError
+from configparser import SectionProxy
+
 
 log = logging.getLogger(__name__)
 
 p = Prompter()
 
 
-class MariaDB(SQL, base_config): # level 1
+class MariaDB(SQL, parameters): # level 1
     """
     MariaDB Database Wrapper
     Things to note in Oracle:
@@ -25,8 +28,10 @@ class MariaDB(SQL, base_config): # level 1
     This assumse you have all your Oracle ENV variables set correctly, e.g.
 
     """
-    def __init__(self, db_entry='redcap', opt_print=True): 
+    def __init__(self, db_entry='redcap', opt_print=True, db_section:SectionProxy=None): 
         config = self._read_config(db_entry, opt_print)
+        # initialize config
+        self._init_config(db_section, db_entry, opt_print)
         self._save_config(config)
         super(MariaDB, self).__init__(schema_name=self._username) # username is schema
         self._connect()

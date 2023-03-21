@@ -200,109 +200,69 @@ class config_reader(config_looker):
         config = self.config
         return sorted(list(config.keys()))
     
+    def _print_conn_msg(self, opt_print, db_entry:str, sec_path:str=None, vault=False):
+        if opt_print:
+            msg = f'Initializing database connection '
+            if vault:
+                msg += f"using vault {sec_path}."
+            else:
+                msg += f'from config file {self.CONFIG} using [{db_entry}].'
+            print(msg)
+        else: # dont print anything
+            pass
+    
     def read(self, 
             db_entry:str=None,
             opt_print=True, 
             return_entry=True,
-            interpolate=False):
+            interpolate=False,
+            sec_path=None,
+            vault=False,
+            map_secrets:dict=None):
         # if verbose 
-        if opt_print:
-            msg = f'Initializing database connection from '
-            msg += f'config file {self.CONFIG} using [{db_entry}].'
-            print(msg)
+        
 
-        # use regular ConfigParser
+        # use regular ConfigParser with interpolation
         if interpolate:
             config_result = self.config
+        # use vault
+        elif vault:
+            db_entry, config_result = self._read_vault(sec_path, 
+                                                      map_secrets, 
+                                                      db_entry)
+            self._print_conn_msg(opt_print, db_entry, sec_path, vault=True)
+            
         # else use RawConfigParser (default)
         else: 
             config_result = self.config_raw
+            self._print_conn_msg(opt_print, db_entry)
         
+        return self._return_config_result(config_result,
+                                          db_entry, 
+                                          return_entry)
+        # # if db_entry, return only section
+        # if return_entry and db_entry is not None: # return only entry
+        #     return config_result[db_entry]
+        # # else, return the whole config file
+        # else: 
+        #     return config_result
+    def _return_config_result(self,
+                              config_result,
+                              db_entry:str,
+                              return_entry:bool):
+        """determins if returns only Section or entire Config"""
         # if db_entry, return only section
         if return_entry and db_entry is not None: # return only entry
             return config_result[db_entry]
         # else, return the whole config file
         else: 
             return config_result
-
-
-class Missing_DBCONFIG_ValueError(Exception):
-    """raised when a value is missing"""
-    pass
-
-class base_config:
-    """
-    For db_config parameter backwards compatability and data interoperability.
-
-    These functions help collate synonyms that represent the same concept, e.g..
-        * [username, hello]
-        * [password, pw, world]
-        * [server, hostname]
-    """
-    def __init__(self):
-        pass
-
-    @property
-    def _username(self):
-        result = self._config.get('username', self._config.get('hello'))
-        if result is None:
-            raise Missing_DBCONFIG_ValueError# Error
-        else:
-            return result
     
-    @property
-    def _pw(self):
-        result = self._config.get('password', self._config.get('world'))
-        if result is None:
-            raise Missing_DBCONFIG_ValueError# Error
-        else:
-            return result
+    def _read_vault(self, 
+                   sec_path:str,
+                   map_secrets:dict, 
+                   db_entry:str):
 
-    @property
-    def _hostname(self):
-        result = self._config.get('server', self._config.get('hostname'))
-        if result is None:
-            raise Missing_DBCONFIG_ValueError# Error
-        else:
-            return result
-    
-    @property
-    def _database(self):
-        result = self._config.get('database', self._config.get('db_name'))
-        if result is None:
-            raise Missing_DBCONFIG_ValueError# Error
-        else:
-            return result
-    
-    @property
-    def _port(self):
-        result = self._config.get('port')
-        if result is None:
-            raise Missing_DBCONFIG_ValueError# Error
-        else:
-            return result
-    
-    @property
-    def _driver(self):
-        result = self._config.get('driver')
-        if result is None:
-            raise Missing_DBCONFIG_ValueError# Error
-        else:
-            return result
-    
-    @property
-    def _service_name(self):
-        result = self._config.get('service_name')
-        if result is None:
-            raise Missing_DBCONFIG_ValueError# Error
-        else:
-            return result
-        
-    @property
-    def _tns_alias(self):
-        result = self._config.get('tns_alias')
-        if result is None:
-            raise Missing_DBCONFIG_ValueError# Error
-        else:
-            return result
-    
+        config = RawConfigParser()
+        config[db_entry] = map_secrets
+        return db_entry, config

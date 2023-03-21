@@ -9,9 +9,12 @@ import cx_Oracle
 from cx_Oracle import InterfaceError
 #from sqlwrapper.dbmenu import db_menu
 from sqlwrapper.prompter import Prompter
-from sqlwrapper.config import config_reader, base_config, Missing_DBCONFIG_ValueError
+from sqlwrapper.config import config_reader
+from sqlwrapper.parameters import parameters, Missing_DBCONFIG_ValueError
 from sqlwrapper.base import SQL
 from typing import Union
+from configparser import SectionProxy
+
 
 log = logging.getLogger(__name__)
 
@@ -25,7 +28,7 @@ class FailedInsertMissingTable(Error):
     """Raised when attemps to insert pandas df but table is not defined"""
     pass
 
-class Oracle(SQL, base_config): # level 1
+class Oracle(SQL, parameters): # level 1
     """
     Oracle Database Wrapper
     Things to note in Oracle:
@@ -39,12 +42,12 @@ class Oracle(SQL, base_config): # level 1
         * (full) LD_LIBRARY_PATH=$ORACLE_HOME/lib:$LD_LIBRARY_PATH
         * (instant) LD_LIBRARY_PATH=$ORACLE_HOME:$LD_LIBRARY_PATH
     """
-    def __init__(self, db_entry='Velos', opt_print=True): #defaults to Velos
-        config = config_reader().read(db_entry, opt_print) # local variable not saved
+    def __init__(self, db_entry='Velos', opt_print=True, db_section:SectionProxy=None): #defaults to Velos
+        # initialize config
+        config = self._init_config(db_section, db_entry, opt_print)
         self._save_config(config)
         super(Oracle, self).__init__(schema_name=self._username) # username is schema
         self._connect()
-        #self._save_config(config)
 
     def __del__(self):
         try:
@@ -165,7 +168,7 @@ class Oracle(SQL, base_config): # level 1
 
     def scope(self):
         print('[Current Scope]\n',
-              'Server:', self._self._hostname.split('.')[0], "#aka hostname", '\n',
+              'Hostname:', self._hostname.split('.')[0], "# aka the servername", '\n',
               'Database:', self._service_name.split('.')[0], '\n', 
               'Schema/User:', self.schema_name, '\n')
     

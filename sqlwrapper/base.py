@@ -22,7 +22,9 @@ import pandas as pd
 from sqlalchemy import exc, inspect
 # SQLWrapper
 from sqlwrapper.prompter import Prompter
+from sqlwrapper.config import config_reader
 from typing import Union
+from configparser import SectionProxy
 
 # logging
 log = logging.getLogger(__name__)
@@ -39,6 +41,13 @@ class SQL: # level 0
         # self.msg_inaction = "No action taken. Remember to rollback or commit."
         self.sqlHx = pd.Series(dtype='object')
         self.p = Prompter()
+    
+    def _init_config(self, db_section:SectionProxy, db_entry:str, opt_print:bool):
+        if db_section is None:
+            config_result = config_reader().read(db_entry, opt_print) # local variable not saved
+        else:
+            config_result = db_section
+        return config_result
     
     def _connect(self):
         """connect to database"""

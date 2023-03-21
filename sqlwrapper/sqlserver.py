@@ -7,7 +7,10 @@ import pandas as pd
 from typing import Union
 from sqlwrapper.base import SQL
 from sqlwrapper.prompter import Prompter
-from sqlwrapper.config import config_reader, base_config, Missing_DBCONFIG_ValueError
+from sqlwrapper.config import config_reader
+from sqlwrapper.parameters import parameters, Missing_DBCONFIG_ValueError
+from configparser import SectionProxy
+
 from getpass import getpass
 
 # logging
@@ -16,7 +19,7 @@ log = logging.getLogger(__name__)
 # prompter
 p = Prompter()
 
-class SQLServer(SQL, base_config): # level 1
+class SQLServer(SQL, parameters): # level 1
     """
     SQL Server Database Wrapper
     Set-up: authentication config
@@ -25,16 +28,10 @@ class SQLServer(SQL, base_config): # level 1
                  db_entry='OMOP_DeID',
                  schema_name='dbo',
                  trusted='yes',
-                 opt_print=True):
-        # attempt ot initizlie
-        config = config_reader().read(db_entry, opt_print) # local variable not saved
-        # if config is None:
-        #     config = db_menu.prompt_db()
-        #try:
-        #    config = db_menu.read_config(config) #keep local
-        #except KeyError:
-        #    print('\nERROR: Attempted to init an Oracle db.Try again.')
-        #    return
+                 opt_print=True,
+                 db_section:SectionProxy=None):
+        # initialize config
+        config = self._init_config(db_section, db_entry, opt_print)
         self._save_config(config)
         super(SQLServer, self).__init__(db_name=self._database, 
                                         schema_name=schema_name)

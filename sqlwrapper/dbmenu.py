@@ -6,8 +6,9 @@ from sqlwrapper.sqlserver import SQLServer
 from sqlwrapper.mariadb import MariaDB 
 from dotenv import load_dotenv
 from pathlib import Path
+import hvac
 import logging
-from configparser import InterpolationSyntaxError
+from configparser import InterpolationSyntaxError, SectionProxy
 #import df_tools
 import sys
 import os
@@ -15,28 +16,9 @@ import traceback
 
 log = logging.getLogger(__name__)
 
-def connect_vault():
-    """ !TO-DO: connect to vault instead"""
-    load_dotenv(Path.cwd() / '.env')
-    vault_url = os.getenv('')
-    vault_token = os.getenv('')
-    return False
-
-def connect_db_config(db_entry):
-    """connect via db_config.ini file"""
-    menu = db_menu()
-    return menu.connect(db_entry)
-
-def connect(db_entry:str=None, vault=False, **kwargs):
-    """
-    Pass the db config entry to connect. Use ls() or entries() if you don't
-    remember.
-    """
-    if vault:
-        return connect_vault()
-    else:
-        return connect_db_config(db_entry)
-
+################################################################################
+# DB_MENU
+################################################################################
 class db_menu:
     def __init__(self):
         self._config_reader = config_reader()
@@ -81,22 +63,55 @@ class db_menu:
     def read_config(self, *args, **kwargs):
         return self._config_reader.read(*args, **kwargs)
 
+    # def read_vault(self, *args, **kwargs):
+    #     return self._config_reader._read_vault(*args, **kwargs)
+    
     def switch_config(self):
         self._config_reader.select_config()
 
 
-    def connect(self, db_entry:str=None, interpolate=False):
-        if db_entry is None:
-            db_entry = self._prompt_db_entry()
-
-        db_section = self.read_config(db_entry, 
+    def connect(self, 
+                db_entry:str=None,
+                interpolate=False,
+                sec_path:str=None,
+                map_secrets:dict=None):
+        # if using vault
+        if sec_path is not None:
+            if db_entry is None:
+                db_entry = sec_path.split('/')[-1]
+            db_section = self.read_config(sec_path=sec_path, 
+                                          map_secrets=map_secrets, 
+                                          db_entry=db_entry,
+                                          vault=True)
+            #return db_section
+            return self._connect(db_entry, db_section)
+        # else, connect via menu or by db_entry
+        else:
+            # via menu
+            if db_entry is None:
+                db_entry = self._prompt_db_entry()
+                if db_entry == 0: # Exit, per use request
+                    print('Exiting menu...')
+                    return
+                # if db_entry is False: #
+                #     return
+            
+            # directly via db_entry
+            db_section = self.read_config(db_entry, 
                                       opt_print=False,
                                       interpolate=interpolate)
+            return self._connect(db_entry, db_section)
+        
+    
+    def _connect(self, db_entry:str, db_section:SectionProxy):
         
         try:
+            print(db_entry)
+            print(db_section)
+            print(db_section.values())
             db_type=db_section['db_type'].lower()
             Database = self.map_Database[db_type]
-            return Database(db_entry)
+            return Database(db_entry, db_section=db_section)
         except KeyError as e:
             log.error(e,  exc_info=True)
             #log.traceback(' Traceback '.center(80, '-'))
@@ -128,7 +143,8 @@ class db_menu:
                 print("I said number bro, specifically, an integer.")
                 continue
             if usr_answer == 0: # if user wants to exit prompt.
-                return None
+                return 0
+                #return None
             if usr_answer in range(len(ls_db)): #if correct answer.
                 return ls_db[usr_answer]
             else: # repeat if error

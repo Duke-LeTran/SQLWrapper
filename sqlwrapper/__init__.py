@@ -17,7 +17,8 @@ Research Infrastructure, IT Health Informatics, UC Davis Health
 #from sqlwrapper.sqlwrapper import *
 #from sqlwrapper.config import PATH_TO_CONFIG, CONFIG_FILE
 from sqlwrapper.config import config_reader
-from sqlwrapper.dbmenu import connect, db_menu
+from sqlwrapper.connect import connect
+from sqlwrapper.dbmenu import db_menu
 from pprint import pprint
 import os
 
@@ -38,7 +39,7 @@ def config(open=False):
         os.startfile(config_path)
     return config_path
 
-
+# misc tools
 from sqlwrapper.prompter import Prompter
 from sqlwrapper.df_tools import max_len_cols
 from sqlwrapper.xlsx import read_xlsx, sheet_to_df
