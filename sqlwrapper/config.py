@@ -113,7 +113,7 @@ class config_looker:
         print("Initializing a new config file: ")
         path = Path(os.path.dirname(__file__))
         new_config_file = 'db_config.ini'
-        src = path / '..' / 'config'
+        src = path / 'config'
         dst = Path.cwd()
         shutil.copyfile(src / 'db_config.ini.example',
                         dst / new_config_file)
