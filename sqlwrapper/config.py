@@ -108,16 +108,14 @@ class config_looker:
                 self.append_path(path)
                 self._init_paths(self._LS_PATH, self._LS_CONFIG_FILES)
 
-    def _init_new_config(self):
+    def _init_new_config(self, new_config_file='db_config.ini'):
         import shutil
         print("Initializing a new config file: ")
         path = Path(os.path.dirname(__file__))
-        new_config_file = 'db_config.ini'
-        src = path / 'config'
+        src = path / 'config_sample'
         dst = Path.cwd()
         shutil.copyfile(src / 'db_config.ini.example',
                         dst / new_config_file)
-
         self.current = (dst, new_config_file)
         self.current_list = (dst, new_config_file) 
         print('  path_to_config:', dst / new_config_file)
