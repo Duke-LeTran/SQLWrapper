@@ -190,7 +190,6 @@ class SQL: # level 0
         
     def _save_sql_hx(self, sql_statement):
         sql_statement = ' '.join(sql_statement.split()) #remove extra whitespace
-        print(sql_statement)
         self.sqlHx = self.sqlHx.append(pd.Series(sql_statement), ignore_index=True)
 
     def close(self):
