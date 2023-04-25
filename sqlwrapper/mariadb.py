@@ -1,6 +1,7 @@
 import logging
 import sqlalchemy
 from typing import Union
+from typing_extensions import Literal
 import pandas as pd
 
 
@@ -29,7 +30,7 @@ class MariaDB(SQL, parameters): # level 1
 
     """
     def __init__(self, db_entry='redcap', opt_print=True, db_section:SectionProxy=None): 
-        config = self._read_config(db_entry, opt_print)
+        config = self._init_config(db_section, db_entry, opt_print)
         # initialize config
         self._init_config(db_section, db_entry, opt_print)
         self._save_config(config)
@@ -97,12 +98,14 @@ class MariaDB(SQL, parameters): # level 1
     def select(self,
                tbl_name:str,
                cols:Union[list, str]='*',
+               caps_case:str=False,
                schema:str=None,
                print_bool:bool=True,
                limit:int=10, # default to 10
                where:str=None,
                order_by:str=None,
-               desc:bool=False):
+               desc:bool=False,
+               index=False):
         """
         Function: returns a pd.DataFrame
         cols: list of columns
@@ -115,26 +118,23 @@ class MariaDB(SQL, parameters): # level 1
         # SCHEMA
         ## !TO-DO?
         # SQL SKELETON
-        sql_statement = f"SELECT {col_names} FROM {tbl_name.lower()}"
+        sql_statement = f"SELECT {col_names} FROM {tbl_name}"
         # WHERE
         sql_statement = self._where(sql_statement, where)
-        # ORDER BYselect_cols
+        # ORDER BY
         sql_statement = self._order_by(sql_statement, cols, order_by, desc)
         # LIMIT
-        if limit == None:
-            pass
-        else:
-            sql_statement = self._limit(sql_statement, limit)
+        sql_statement = self._limit(sql_statement, limit)
+        # convert names to capital for consistency
+        df_output = self._cols_case(caps_case, df_output)
         # LOG
         if print_bool:
             self._save_sql_hx(sql_statement + ';')
-        #df_output = pd.read_sql(sql_statement, self.engine)
+        # read_sql
         df_output = self.read_sql(sql_statement)
-        # convert names to capital for consistency
-        df_output.columns = [x.upper() for x in df_output.columns]
         return df_output
 
-    def truncate(self, table:str, schema:str=None, engine=None, answer=None, tbl_lower=True):
+    def truncate(self, table:str, schema:str=None, engine=None, answer=None, cap_case=Literal['lower', 'upper']):
         """
         You can use this to truncate other tables too, static method
         """
@@ -176,6 +176,8 @@ class MariaDB(SQL, parameters): # level 1
         #    print(f'Table {tbl_name} does not exist in the db. Nothing to drop.')
         #else:
         sql_statement = f'DROP {what} {tbl_name}'
+        # print scope for clarity
+        self.scope()
         if p.prompt_confirmation(msg=f'Are you sure your want to drop {tbl_name}?', answer=answer):
             self.read_sql(sql_statement)
 

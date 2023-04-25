@@ -171,7 +171,8 @@ class Oracle(SQL, parameters): # level 1
         print('[Current Scope]\n',
               'Hostname:', self._hostname.split('.')[0], "# aka the servername", '\n',
               'Database:', self._service_name.split('.')[0], '\n', 
-              'Schema/User:', self.schema_name, '\n')
+              'Schema/User:', self.schema_name, '\n',
+              'DB type:', self._config['db_type'])
     
     def version(self):
         """prints the Oracle DB version"""
@@ -247,6 +248,8 @@ class Oracle(SQL, parameters): # level 1
         #    print(f'Table {tbl_name} does not exist in the db. Nothing to drop.')
         #else:
         sql_statement = f'DROP {what} {self.schema_name}.{tbl_name}'
+        # print scope for clarity
+        self.scope()
         if p.prompt_confirmation(msg=f'Are you sure your want to drop {tbl_name}?', answer=answer):
             self.read_sql(sql_statement)
     

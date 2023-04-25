@@ -236,7 +236,8 @@ class SQLServer(SQL, parameters): # level 1
         print('[Current Scope]\n',
               'Server:', self._config['SERVER'], '\n',
               'Database:', self._config['DATABASE'], '\n', 
-              'Schema:', self.schema_name, '\n')
+              'Schema:', self.schema_name, '\n',
+              'DB type:', self._config['db_type'])
 
     @staticmethod
     def _limit(col_names, limit, prefix, tbl_name):
