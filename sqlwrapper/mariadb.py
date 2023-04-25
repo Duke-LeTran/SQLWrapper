@@ -144,13 +144,19 @@ class MariaDB(SQL, parameters): # level 1
         if engine is None:
             engine = self.engine
         
+        # print scope for clarity
+        self.scope()
         # prompt for confirmation
         if not p.prompt_confirmation(answer=answer): # if user denies
             print('Did not truncate, canceled by user.')
 
         # table_name.lower()
-        if tbl_lower == True:
-            table = table.lower()
+        table = self.cap_case(table, cap_case)
+        # self.
+        # if cap_case == 'lower':
+        #     table = table.lower()
+        # elif cap_case == 'upper'
+        #     table = table.upper()
 
         # create connection and truncate
         conn = engine.raw_connection()

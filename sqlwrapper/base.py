@@ -23,7 +23,8 @@ from sqlalchemy import exc, inspect
 # SQLWrapper
 from sqlwrapper.prompter import Prompter
 from sqlwrapper.config import config_reader
-from typing import Union
+from typing import Union#, Literal
+from typing_extensions import Literal
 from configparser import SectionProxy
 
 # logging
@@ -232,7 +233,28 @@ class SQL: # level 0
         if desc:
             sql_statement = f"{sql_statement} DESC"
         return sql_statement
-                
+
+    @staticmethod
+    def _cap_case(table:str, cap_case:Literal['lower', 'upper']):
+        """doesn't have to be a table"""
+        if cap_case == 'lower':
+            table = table.lower()
+        elif cap_case == 'upper':
+            table = table.upper()
+        else:
+            pass
+        return table
+    
+    @staticmethod
+    def _cols_case(caps_case:str, df_input:pd.DataFrame):
+        df_output = df_input.copy()
+        if caps_case.lower() == 'lower':
+            df_output.columns = [x.upper() for x in df_input.columns]
+        elif caps_case.upper() == 'upper':
+            df_output.columns = [x.upper() for x in df_input.columns]
+        else:
+            pass
+        return df_output
     
     
     def __del__(self):
