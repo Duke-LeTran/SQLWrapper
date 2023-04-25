@@ -60,14 +60,25 @@ class MariaDB(SQL, parameters): # level 1
         self.inspector = inspect(self.engine)
 
     def _limit(self, sql_statement, limit):
-        sql_statement += f' LIMIT {str(limit)}'
-        return sql_statement
+        if limit == None:
+            return sql_statement
+        else:
+            sql_statement += f' LIMIT {str(limit)}'
+            return sql_statement
 
-    def tables(self):
+    def tables(self, silent=False):
         try:
-            return list(self.read_sql('SHOW TABLES;')[f'Tables_in_{self._database}'])
+            return list(self.read_sql('SHOW TABLES;', silent=silent)[f'Tables_in_{self._database}'])
         except Exception as error:
             log.error(error)
+
+    def scope(self):
+        print('[Current Scope]\n',
+              'Hostname:', self._hostname.split('.')[0], '\n',
+              'Database:', self._database.split('.')[0], '\n', 
+              'User:', self.schema_name, '\n',
+              'DB type:', self._config['db_type'])
+
 
     def columns(self,
                 tbl_name:str,

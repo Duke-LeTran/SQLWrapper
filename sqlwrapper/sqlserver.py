@@ -203,8 +203,8 @@ class SQLServer(SQL, parameters): # level 1
                          f"       COLUMN_NAME as col_name " \
                          f"FROM " \
                          f"    INFORMATION_SCHEMA.COLUMNS;")
-            self.df_info = self.read_sql(sql_short)#pd.read_sql(sql_short, self.engine)
-            self.df_info_Long = self.read_sql(sql_long)#pd.read_sql(sql_long, self.engine)
+            self.df_info = self.read_sql(sql_short, silent=True)
+            self.df_info_Long = self.read_sql(sql_long, silent=True)
 
     def info(self, long_bool=False):
         if long_bool:
