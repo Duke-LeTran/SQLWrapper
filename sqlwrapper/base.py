@@ -180,6 +180,10 @@ class SQL: # level 0
     def schemas(self):
         return self.inspector.get_schema_names()
 
+    def tbl_exists(self, tbl_name) -> bool:
+        """checks if table exists in the database"""
+        return tbl_name in self.tables(silent=True)
+
     # @property
     # def schema(self):
     #     return self.schema_name
