@@ -195,7 +195,8 @@ class SQL: # level 0
         
     def _save_sql_hx(self, sql_statement):
         sql_statement = ' '.join(sql_statement.split()) #remove extra whitespace
-        self.sqlHx = self.sqlHx.append(pd.Series(sql_statement), ignore_index=True)
+        #self.sqlHx = self.sqlHx.append(pd.Series(sql_statement), ignore_index=True)
+        self.sqlHx = pd.concat([self.sqlHx, pd.Series(sql_statement)]) # fixed for pandas deprecating append()
 
     def close(self):
         self.__del__()
