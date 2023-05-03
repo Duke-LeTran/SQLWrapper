@@ -151,7 +151,7 @@ class MariaDB(SQL, parameters): # level 1
             print('Did not truncate, canceled by user.')
 
         # table_name.lower()
-        table = self.cap_case(table, cap_case)
+        table = self._cap_case(table, cap_case)
         # self.
         # if cap_case == 'lower':
         #     table = table.lower()
