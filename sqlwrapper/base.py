@@ -249,7 +249,9 @@ class SQL: # level 0
     @staticmethod
     def _cols_case(caps_case:str, df_input:pd.DataFrame):
         df_output = df_input.copy()
-        if caps_case.lower() == 'lower':
+        if (caps_case is None) or (caps_case == False):
+            pass
+        elif caps_case.lower() == 'lower':
             df_output.columns = [x.upper() for x in df_input.columns]
         elif caps_case.upper() == 'upper':
             df_output.columns = [x.upper() for x in df_input.columns]

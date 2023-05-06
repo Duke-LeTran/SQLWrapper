@@ -67,7 +67,7 @@ class MariaDB(SQL, parameters): # level 1
             sql_statement += f' LIMIT {str(limit)}'
             return sql_statement
 
-    def tables(self, silent=False):
+    def tables(self, silent=True):
         try:
             return list(self.read_sql('SHOW TABLES;', silent=silent)[f'Tables_in_{self._database}'])
         except Exception as error:
@@ -84,7 +84,8 @@ class MariaDB(SQL, parameters): # level 1
     def columns(self,
                 tbl_name:str,
                 verbose=False,
-                return_dtype=False) -> Union[pd.core.indexes.base.Index, list]:
+                return_dtype=False,
+                silent=True) -> Union[pd.core.indexes.base.Index, list]:
         if verbose:
             return self.inspector.get_columns(tbl_name.lower())
         elif return_dtype:
@@ -92,20 +93,21 @@ class MariaDB(SQL, parameters): # level 1
             df_dtype = pd.DataFrame(self.inspector.get_columns(tbl_name.lower(), dialect_options='mariadb'))
             return {k.upper():v for k,v in zip(df_dtype['name'], df_dtype['type'])}
         else:
-            df_result = self.select(tbl_name, limit=1, print_bool=False)
+            df_result = self.select(tbl_name, limit=1, print_bool=False, silent=silent)
             return df_result.columns
 
     def select(self,
                tbl_name:str,
                cols:Union[list, str]='*',
-               caps_case:str=False,
+               caps_case:str=None,
                schema:str=None,
                print_bool:bool=True,
                limit:int=10, # default to 10
                where:str=None,
                order_by:str=None,
                desc:bool=False,
-               index=False):
+               index=False,
+               silent=False):
         """
         Function: returns a pd.DataFrame
         cols: list of columns
@@ -125,13 +127,13 @@ class MariaDB(SQL, parameters): # level 1
         sql_statement = self._order_by(sql_statement, cols, order_by, desc)
         # LIMIT
         sql_statement = self._limit(sql_statement, limit)
-        # convert names to capital for consistency
-        df_output = self._cols_case(caps_case, df_output)
         # LOG
         if print_bool:
             self._save_sql_hx(sql_statement + ';')
         # read_sql
-        df_output = self.read_sql(sql_statement)
+        df_output = self.read_sql(sql_statement, silent=silent)
+        # convert names to capital for consistency
+        df_output = self._cols_case(caps_case, df_output)
         return df_output
 
     def truncate(self, table:str, schema:str=None, engine=None, answer=None, cap_case=Literal['lower', 'upper']):
