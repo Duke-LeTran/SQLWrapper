@@ -111,7 +111,12 @@ class SQL: # level 0
         log.info("=======================================================")
         log.info(f"TRUNCATE TABLE {schema}.{table}... ")
         log.info("=======================================================")
-        cursor.execute(f"TRUNCATE TABLE {schema}.{table}")
+        try:
+            cursor.execute(f"TRUNCATE TABLE {schema}.{table}")
+        except ProgrammingError as e:
+            cursor.execute(f"TRUNCATE TABLE {schema}.{table.lower()}")
+        except ProgrammingError as e:
+            cursor.execute(f"TRUNCATE TABLE {schema}.{table.upper()}")
         log.info("Table truncated, done!")
         conn.close()
     
