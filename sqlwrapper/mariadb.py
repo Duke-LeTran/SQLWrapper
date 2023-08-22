@@ -166,7 +166,12 @@ class MariaDB(SQL, parameters): # level 1
         log.info("=======================================================")
         log.info(f"TRUNCATE TABLE {table}... ")
         log.info("=======================================================")
-        cursor.execute(f"TRUNCATE TABLE {table}")
+        try:
+            cursor.execute(f"TRUNCATE TABLE {table}")
+        except ProgrammingError as e:
+            cursor.execute(f"TRUNCATE TABLE {table.lower()}")
+        except ProgrammingError as e:
+            cursor.execute(f"TRUNCATE TABLE {table.upper()}")
         log.info("Table truncated, done!")
         conn.close()
 
