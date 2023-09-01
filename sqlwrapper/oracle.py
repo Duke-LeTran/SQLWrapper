@@ -339,8 +339,8 @@ class Oracle(SQL, parameters): # level 1
         ## if df has more cols than in the database, filter using this below:
         cols_tbl = (', '.join(self.columns(table)))
 
-        # C. CONVERT EACH VAL OF EACH ROW > STRING #############################
-        func = lambda ls : [str(x) for x in ls]
+        # C. CONVERT EACH VAL OF EACH ROW --> STRING ###########################
+        func = lambda ls : [str(x).replace('NaT','') for x in ls]
         # converts df to a list of string values 
         lines = [tuple(func(x)) for x in df_temp.values]
         
