@@ -23,6 +23,7 @@ Use the following parameters in your config or vault secrets: [parameters](docs/
 
 
 # 01. Quickstart
+## Connect
 ![usage_vault](imgs/usage_vault.png)
 ```python
 import pandas as pd
@@ -40,20 +41,28 @@ db = sqlwrapper.connect(sec_path=sec_path)
 Then, test your connection with `db.tables()`. This will simply list all the
 tables in the database.
 
+## Usage
 A few familiar `pandas` and `sqlalchemy`-esque functions available:
 * `db.read_sql('SELECT * FROM tbl_name')`
 * `db.columns('tbl_name')` - returns pandas columns of table
 * `db.select('tbl_name', limit=None)` - selects table with no limit; default is 10
+* `db.insert(df, 'tbl_name')`- use this for `cx_Oracle`'s `executemany()` inserts; table must exist; alternatively use `pd.to_sql()`
 * `db.tables()` - returns list of tables
 * `db.views()` - returns list of views
 * `db.engine` - `sqlalchemy` object engine
-* `db.inspector` `sqlalchemy` object inspector
+* `db.inspector` - `sqlalchemy` object inspector
 
-Some additional ideas of usage:
+## Sqlalchemy's engine
+Some additional ideas of usage. More info here: https://docs.sqlalchemy.org/en/20/tutorial/dbapi_transactions.html#committing-changes
 
 ```
 with db.engine.connect() as conn:
     conn.execute(query)
+    # on exit, the transaction is automatically rolled back, commit as you go
+
+with db.engine.begin() as conn:
+    conn.execute()
+    # transaction is automatically commited if no errors
 ```
 
 
