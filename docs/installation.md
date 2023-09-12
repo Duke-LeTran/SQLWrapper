@@ -1,6 +1,23 @@
 # INSTALLATION
 # 00. Installing the module
-## A. pipenv
+
+## A. pip
+The package is available on UCDH intranet, so you may use pip.
+
+`pip install -i 'https://repos.ri.ucdavis.edu/python' sqlwrapper`
+`pip install --index-url 'https://repos.ri.ucdavis.edu/python' sqlwrapper`
+`pip install --extra-index 'https://repos.ri.ucdavis.edu/python' sqlwrapper`
+
+Using `virtualenv` or `venv`. More on python virtual environments [here](https://realpython.com/python-virtual-environments-a-primer/).
+
+```
+> python -m venv sqlenv # alternatively: virtualenv sqlvenv
+> source sqlvenv/bin/activate
+> (sqlvenv) pip install sqlalchemy cx-oracle pyodbc numpy pandas
+> (sqlvenv) pip install -i 'https://repos.ri.ucdavis.edu/python' sqlwrapper
+```
+
+## B. pipenv
 `pipenv install -i 'https://repos.ri.ucdavis.edu' sqlwrapper`
 
 Alternatively, you may edit your Pipefile directly, then use `pipenv install`.
@@ -24,7 +41,9 @@ verify_ssl = true
 sqlwrapper = {index="ripy", version="*"}
 ```
 
-## B. PYTHONPATH
+## C. PYTHONPATH
+You may clone down the repository and add it to your `PYTHONPATH`.
+
 ```bash
 git clone git@github.com:Duke-LeTran/SQLWrapper.git ~/path_to_pythonpath/SQLWrapper
 ```

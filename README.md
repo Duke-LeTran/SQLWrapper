@@ -9,7 +9,9 @@ implementations are the most robust; additional database connections exist
 but may require further development.
 
 # 00. Installation
-See [Installation](docs/installation.md).
+See [Installation](docs/installation.md) for more details.
+
+`pip install -i https://repos.ri.ucdavis.edu/repos sqlwrapper`
 
 Be sure to complete one of the following setup:
 * [Usage with vault](docs/setup_vault.md)
