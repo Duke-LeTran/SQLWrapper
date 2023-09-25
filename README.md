@@ -11,7 +11,11 @@ but may require further development.
 # 00. Installation
 See [Installation](docs/installation.md) for more details.
 
-`pip install pandas pyodbc cx-oracle sqlalchemy`
+`pip install -i https://repos.ri.ucdavis.edu/python --extra-index-url https://pypi.org/simple sqlwrapper`
+
+Alternatively:
+
+`pip install pandas pyodbc cx-oracle sqlalchemy python-dotenv hvac openpyxl`
 `pip install -i 'https://repos.ri.ucdavis.edu/python' sqlwrapper`
 
 Be sure to complete one of the following setup:

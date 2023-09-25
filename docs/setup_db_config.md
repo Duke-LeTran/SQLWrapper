@@ -18,12 +18,13 @@ chmod 700 ~/.mypylib/*
 chmod 600 ~/.mypylib/db_config.ini
 ```
 
-# 01. SETUP: db_config file
+# II. SETUP: db_config file
 Alternatively, you may use vault. To use the local `db_config.ini`, install at
 one of the following directories:
 * `$HOME/.mypylib/db_config.ini` - useful if you have many db connections
 * `$PROJECT_DIR/db_config.ini`
 
+Here are some sample entries:
 ```ini
 # I. Oracle
 [ORACLE_DB_ENTRY] 
@@ -34,12 +35,34 @@ hostname = HostName
 service_name = ServiceName
 port = 1521
 
-# II. SQL SERVER (windows auth)
-[SQLSERVER_DB_ENTRY]
+# II. SQL SERVER
+[SQLSERVER_WindowsAuth]
 username = dletran
 DRIVER = {ODBC Driver 17 for SQL Server}
 SERVER = NameOfServer
 DATABASE = NameOfDatabase
+
+[SQLSERVER_FreeTDS]
+hello=HS\\dletran
+DRIVER={FreeTDS}
+SERVER=NameOfServer
+DATABASE=NameOfDatabase
+db_type=SQLServer
+
+[SQLSERVER_service_account]
+username=srv-username
+password=fakepw123
+DRIVER={ODBC Driver 17 for SQL Server}
+SERVER=HSSERVERNAME
+DATABASE=NameOfDatabase
+
+
+# III. Mariadb
+[MyProfiles]
+username=dletran
+password=fakepw123
+hostname=servername.ucdmc.ucdavis.edu
+port=3306
+db_name=NameOfDatabase
+db_type=MariaDB
 ```
-
-
