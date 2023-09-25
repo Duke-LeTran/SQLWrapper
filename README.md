@@ -11,15 +11,14 @@ but may require further development.
 # 00. Installation
 See [Installation](docs/installation.md) for more details.
 
-`pip install -i 'https://repos.ri.ucdavis.edu/repos' sqlwrapper`
+`pip install pandas pyodbc cx-oracle sqlalchemy`
+`pip install -i 'https://repos.ri.ucdavis.edu/python' sqlwrapper`
 
 Be sure to complete one of the following setup:
 * [Usage with vault](docs/setup_vault.md)
 * [Usage with db_config.ini](docs/setup_db_config.md)
 
 Use the following parameters in your config or vault secrets: [parameters](docs/parameters.md)
-
-
 
 
 # 01. Quickstart
