@@ -55,6 +55,7 @@ password=fakepw123
 DRIVER={ODBC Driver 17 for SQL Server}
 SERVER=HSSERVERNAME
 DATABASE=NameOfDatabase
+db_type=SQLServer
 
 
 # III. Mariadb
