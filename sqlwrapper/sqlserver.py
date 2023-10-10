@@ -65,7 +65,7 @@ class SQLServer(SQL, parameters): # level 1
                                f"UID={self._username};" \
                                f"PWD={self._pw}")
         except Missing_DBCONFIG_ValueError as e: #windows auth
-            log.warning("Attemping to connect with Windows Auth...")
+            log.warning("Attempting to connect with Windows Auth...")
             conn_string = (f"DRIVER={self._driver};" \
                            f"SERVER={self._hostname};" \
                            f"DATABASE={self._database};" \
