@@ -42,7 +42,7 @@ def config(open=False):
 
 # misc tools
 from sqlwrapper.prompter import Prompter
-from sqlwrapper.df_tools import max_len_cols
+from sqlwrapper.df_tools import max_len_cols, generate_create_statement
 from sqlwrapper.xlsx import read_xlsx, sheet_to_df
 
 # database connections

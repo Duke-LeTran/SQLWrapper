@@ -58,3 +58,25 @@ def max_len_cols_oracle(df_input:pd.DataFrame, factor=1) -> dict:
     return result_dict
 
 
+
+def generate_create_statement(df_input:pd.DataFrame, table_name:str, extra_space:int=1.5) -> list:
+    """
+    This function is not meant to perfectly generate the create statement,
+    but rather, it will give you a skeleton to work with
+    """
+    map_cols = max_len_cols(df_input)
+    ls_cols = sorted(list(map_cols.keys()))
+    ls_result = [f'CREATE TABLE "{table_name}" ( \n']
+    for col in ls_cols:
+        col_name = col
+        if type(map_cols[col]) == int: # if oracle string
+            col_length = map_cols[col]
+            col_length = col_length* extra_space
+            col_name += f'\t VARCHAR2({str(col_length)}), \n'
+        else:
+            col_name += f' {str(map_cols[col])}, \n'
+        ls_result.append(col_name)
+    ls_result.append(');')
+    print(''.join(ls_result))
+    return ls_result
+
