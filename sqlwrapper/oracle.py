@@ -366,7 +366,12 @@ class Oracle(SQL, parameters): # level 1
             cursor.executemany(sql, lines)
             conn.commit()
         except Exception as e:
-            log.warning(e)
+            #log.warning(e) # definitely want this to fail....
+            log.error('sqlwrapper.oracle.insert() error')
+            log.error(f"cx_Oracle.cursor.executemany() error: {e}",  exc_info=True)
+            raise
+            #log.error('[sql]: ' + sql)
+            #log.error('[lines[:10]]: ' + '; '.join(lines[:10]))
         finally:
             cursor.close()
             conn.close()
