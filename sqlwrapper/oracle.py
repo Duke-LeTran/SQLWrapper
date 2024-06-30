@@ -10,23 +10,14 @@ from cx_Oracle import InterfaceError
 #from sqlwrapper.dbmenu import db_menu
 from sqlwrapper.prompter import Prompter
 from sqlwrapper.config import config_reader
-from sqlwrapper.parameters import parameters, Missing_DBCONFIG_ValueError
+from sqlwrapper.parameters import parameters
+from sqlwrapper.errors import Missing_DBCONFIG_ValueError
 from sqlwrapper.base import SQL
+from sqlwrapper.errors import FailedInsertMissingTable
 from typing import Union
 from configparser import SectionProxy
 
-
 log = logging.getLogger(__name__)
-
-p = Prompter()
-
-class Error(Exception):
-    """Base error class"""
-    pass
-
-class FailedInsertMissingTable(Error):
-    """Raised when attemps to insert pandas df but table is not defined"""
-    pass
 
 class Oracle(SQL, parameters): # level 1
     """
@@ -130,7 +121,7 @@ class Oracle(SQL, parameters): # level 1
             engine = self.engine
         
         # prompt for confirmation
-        if not p.prompt_confirmation(answer=answer): # if user denies
+        if not self.p.prompt_confirmation(answer=answer): # if user denies
             print('Did not truncate, canceled by user.')
 
         # create connection and truncate
@@ -250,7 +241,7 @@ class Oracle(SQL, parameters): # level 1
         sql_statement = f'DROP {what} {self.schema_name}.{tbl_name}'
         # print scope for clarity
         self.scope()
-        if p.prompt_confirmation(msg=f'Are you sure your want to drop {tbl_name}?', answer=answer):
+        if self.p.prompt_confirmation(msg=f'Are you sure your want to drop {tbl_name}?', answer=answer):
             self.read_sql(sql_statement)
     
     def _fix_data(self, df_input:pd.DataFrame):

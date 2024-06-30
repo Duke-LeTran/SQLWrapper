@@ -1,22 +1,38 @@
+from src.errors import YesNoParseError
+
 class Prompter:
     def __init__(self):
         self.ls_yes = ['y', 'ye', 'yes']
+        self.ls_no = ['n', 'no']
         self.__default_msg()
     
     def __default_msg(self):
         self.msg_generic = "Are you sure?"
         self.msg_menu = "Please select an integer"
         self.msg_input = "Please enter your input"
-
+    
     def prompt_confirmation(self, msg:str=None, answer:str=None):
         """
         Input: msg
         Return: True or False
         """
-        if (answer is not None) and (answer.lower() in self.ls_yes):
-            return True
-        msg = self.msg_generic if (msg is None) else msg #if none, generic; else msg
-        return True if (input(msg + " (y/n) >> ").lower() in self.ls_yes) else False
+        # if answer is provided
+        if (answer is not None):
+            if answer.lower() in self.ls_yes:
+                return True
+            elif answer.lower() in self.ls_no:
+                return False
+            else:
+                raise YesNoParseError
+        
+        else:
+            msg = self.msg_generic if (msg is None) else msg #if none, generic; else msg
+            if (input(msg + " (y/n) >> ").lower() in self.ls_yes):
+                return True
+            elif (input(msg + " (y/n) >> ").lower() in self.ls_no):
+                return False
+            else:
+                raise YesNoParseError
     
     def prompt_menu(self, msg:str=None, ls:list=[], sep='|'):
         """

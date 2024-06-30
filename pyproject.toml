@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "sqlwrapper"
+name = "ucd-ri-sqlwrapper"
 version = "0.2.98"
 description = "sqlwrapper database tools"
 authors = ["Duke LeTran <daletran@ucdavis.edu>"]
@@ -7,7 +7,7 @@ readme = "README.md"
 
 [[tool.poetry.source]]
 name = "ripy"
-url = "https://repos.ri.ucdavis.edu/python"
+url = "https://hc2-repos.ucdmc.ucdavis.edu/python"
 secondary = true
 
 [tool.poetry.dependencies]

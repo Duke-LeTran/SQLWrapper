@@ -3,21 +3,14 @@ import sqlalchemy
 from typing import Union
 from typing_extensions import Literal
 import pandas as pd
-
-
-# from sqlwrapper import Prompter
-from sqlwrapper.prompter import Prompter
 from sqlwrapper.base import SQL
 # from sqlwrapper.config import PATH_TO_CONFIG, CONFIG_FILE
 from sqlwrapper.config import config_reader
-from sqlwrapper.parameters import parameters, Missing_DBCONFIG_ValueError
+from sqlwrapper.parameters import parameters
+#from sqlwrapper.errors import Missing_DBCONFIG_ValueError
 from configparser import SectionProxy
 
-
 log = logging.getLogger(__name__)
-
-p = Prompter()
-
 
 class MariaDB(SQL, parameters): # level 1
     """
@@ -149,7 +142,7 @@ class MariaDB(SQL, parameters): # level 1
         # print scope for clarity
         self.scope()
         # prompt for confirmation
-        if not p.prompt_confirmation(answer=answer): # if user denies
+        if not self.p.prompt_confirmation(answer=answer): # if user denies
             print('Did not truncate, canceled by user.')
 
         # table_name.lower()
@@ -185,7 +178,7 @@ class MariaDB(SQL, parameters): # level 1
         sql_statement = f'DROP {what} {tbl_name}'
         # print scope for clarity
         self.scope()
-        if p.prompt_confirmation(msg=f'Are you sure your want to drop {tbl_name}?', answer=answer):
+        if self.p.prompt_confirmation(msg=f'Are you sure your want to drop {tbl_name}?', answer=answer):
             self.read_sql(sql_statement)
 
     def _process_df_insert_values(self, value):

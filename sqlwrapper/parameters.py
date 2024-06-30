@@ -1,6 +1,4 @@
-class Missing_DBCONFIG_ValueError(Exception):
-    """raised when a value is missing"""
-    pass
+from sqlwrapper.errors import Missing_DBCONFIG_ValueError
 
 class parameters:
     """

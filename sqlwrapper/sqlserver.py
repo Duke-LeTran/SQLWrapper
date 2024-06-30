@@ -16,9 +16,6 @@ from getpass import getpass
 # logging
 log = logging.getLogger(__name__)
 
-# prompter
-p = Prompter()
-
 class SQLServer(SQL, parameters): # level 1
     """
     SQL Server Database Wrapper
@@ -381,7 +378,7 @@ class SQLServer(SQL, parameters): # level 1
             engine = self.engine
         
         # prompt for confirmation
-        if not p.prompt_confirmation(answer=answer): # if user denies
+        if not self.p.prompt_confirmation(answer=answer): # if user denies
             print('Did not truncate, canceled by user.')
 
         # table_name.lower()
